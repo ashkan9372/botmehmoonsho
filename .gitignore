@@ -26,11 +26,18 @@ pnpm-debug.log*
 # Editor directories and files
 *.idea
 .idea
+.browserslistrc
 .vscode
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-
+.env
+venv
+.venv
+panel/config.ini
+media
+public
+src
+node_modules
