@@ -36,7 +36,7 @@ class Monogram:
         url = f"https://{self.endpoint}/file/bot{self.token}/{file_path}"
         # print(url)
         # response = requests.get(url)
-        response =  self.session.get(url)
+        response = self.session.get(url)
         if not os.path.exists(dir_path):
             # Create the directory using os.makedirs()
             os.makedirs(dir_path)
@@ -80,11 +80,20 @@ class Monogram:
             # in config.py if you set PROXY to True session post with PROXIES that you set in config.py
             url = self.api_endpoint + method
 
-            if files:
-                response = self.session.post(url, data=data, files=files, proxies=PROXIES)
-            else:
-                response = self.session.post(url, json=data, proxies=PROXIES)
+            # Use proxy if configured and available
+            # if self.proxy and self.proxies:
+            #     self.session.proxies.update(self.proxies)
+            # else:
+            #     self.session.proxies = None  # Clear proxy settings if not used
 
+            if files:
+                response = self.session.post(url, data=data, files=files)
+                if res:
+                    return response
+            else:
+                response = self.session.post(url, json=data)
+                if res:
+                    return response
             # response.raise_for_status()  # Raise an exception for non-2xx status codes
 
         except requests.exceptions.HTTPError as e:
@@ -94,8 +103,7 @@ class Monogram:
         except requests.exceptions.RequestException as e:
             error_message = str(e)
             logging.exception(f'Failed to edited message. Error message: {error_message}')
-        if res:
-            return response
+
 
 
 class TokenEncryptor(Monogram):
