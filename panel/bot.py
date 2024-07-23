@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from monogram.methods import *
 from monogram import *
 from monogram.text import *
@@ -16,10 +15,7 @@ from panel.views import convert_date as cnv_date
 conf = configs(appname='panel')
 bot = Monogram(**conf)
 
-me = getMe()
-u = User(**me['result'])
-bot_id = u.id
-bot_username = u.username
+
 
 back_markup = ReplyKeyboardMarkup([[KeyboardButton('🔙 بازگشت')]], resize_keyboard=True)
 
@@ -27,17 +23,17 @@ back_markup = ReplyKeyboardMarkup([[KeyboardButton('🔙 بازگشت')]], resiz
 @bot.newMessage(pattern=r'^/start')
 def start(message):
     p = getUserProfile(user_id=message.chat.id)
-    print(p)
+    # print(p)
     p = UserProfilePhotos(**p['result'])
     # print(p.photos[0][0]['file_id'])
-    print(len(p.photos) !=0)
+    # print(len(p.photos) !=0)
     filename = None
     if len(p.photos) !=0:
         f = getFile(p.photos[0][0]['file_id'])
         file_path = f['result']['file_path']
         filename = f'{message.chat.id}.jpg'
         pic = bot.download_file(filename=filename, dir_path='media/img/profile_pictures', file_path=file_path)
-        print(filename)
+        # print(filename)
     try:
         user_info = Profile.objects.get(user_id=message.chat.id)
         message.answer('سلام دوباره! خیلی خوشحالیم که به جمع ما برگشتی.')
@@ -82,7 +78,11 @@ def share_invite_code(message):
         profile = Profile.objects.get(user_id=message.chat.id)
         full_name = profile.enter_name
         referral_code = profile.referral_code
-        print(referral_code)
+        # print(referral_code)
+        me = getMe()
+        u = User(**me['result'])
+        bot_id = u.id
+        bot_username = u.username
         url = "http://t.me/share/url?url="
         text = f"سلام رفیق! من {full_name} هستم.\nدوست دارم باهات تو ربات مهمون شو بازی کنم!\nاگه موافق هستی که از این هفته بازی کنیم، روی لینک زیر بزن و با کد معرف من عضو ربات شو.\nhttp://t.me/{bot_username}?start={referral_code}"
         encoded_url = quote(text)
@@ -142,11 +142,9 @@ def bot_tutorial(message):
     try:
         setting = Setting.objects.get(id=1)
         video_link = setting.link
-        # video_data = 'https://t.me/MFreeSignal/72'
         sendVideo(chat_id=message.chat.id, video=video_link)
     except Setting.DoesNotExist:
         message.answer("آموزش بزودی قرار میگیرد.")
-
 
 @bot.newMessage(pattern='☎ پشتیبانی')
 def bot_support(message):
@@ -334,6 +332,17 @@ def callback_query(query):
                 pass
         except Profile.DoesNotExist:
             pass
+
+    if 'cancelFriend' in query.data:
+        data = query.data.split('-')
+        friend_id = data[1]
+        username = data[2]
+        text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
+        sendMessage(chat_id=chat_id, text=text)
+        text = f'کاربری با یورنیم({username})درخواست دوستی شمارا رد کرد'
+        sendMessage(chat_id=friend_id, text=text)
+        conv = Conversation(friend_id)
+        conv.cancel()
 
     if 'editProfileFullname' in query.data:
         conv = Conversation(chat_id)
@@ -553,7 +562,12 @@ def any(message):
                     # Check if friend is already in user's friend list
                     if friend_profile not in profile.friends.all():
                         text = f"کاربری با نام {friend_profile.enter_name} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
-                        keyboard = [[InlineKeyboardButton("✅ تایید", callback_data=f"acceptFriend-{message.chat.id}-{message.text}")]]
+                        keyboard = [
+                            [
+                                InlineKeyboardButton("✅ تایید", callback_data=f"acceptFriend-{message.chat.id}-{message.text}"),
+                                InlineKeyboardButton("❌ رد", callback_data=f"cancelFriend-{message.chat.id}-{message.text}"),
+                            ]
+                        ]
                         keyboard = InlineKeyboardMarkup(keyboard)
                         sendMessage(chat_id=friend_profile.user_id, text=text, reply_markup=keyboard)
                         text = 'درخواست دوستی شما برای کاربر مورد نظر ارسال شد پس از تایید, به لیست دوستات افاضه میشه.\nبرای اضافه کردن دوستان بیشتر از دکمه بازگشت استاده کنید.'
