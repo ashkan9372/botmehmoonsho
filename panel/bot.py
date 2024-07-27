@@ -379,7 +379,7 @@ def callback_query(query):
                 text = 'درخواست کاربر موردنظر باموفقیت تایید شد.'
                 # sendMessage(chat_id=chat_id, text=text)
                 editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
-                text = 'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
+                text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
                 sendMessage(chat_id=friend_id, text=text)
                 conv = Conversation(friend_id)
                 conv.cancel()
@@ -648,7 +648,7 @@ def any(message):
 
                     # Check if friend is already in user's friend list
                     if friend_profile not in profile.friends.all():
-                        text = f"کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                        text = f"کاربری با نام {profile.enter_name} و نام کاربری {profile.enter_id} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
                         keyboard = [
                             [
                                 InlineKeyboardButton("✅ تایید", callback_data=f"acceptFriend-{message.chat.id}-{message.text}"),
@@ -657,7 +657,7 @@ def any(message):
                         ]
                         keyboard = InlineKeyboardMarkup(keyboard)
                         sendMessage(chat_id=friend_profile.user_id, text=text, reply_markup=keyboard)
-                        text = 'درخواست دوستی شما برای کاربر مورد نظر ارسال شد پس از تایید, به لیست دوستات افاضه میشه.\nبرای اضافه کردن دوستان بیشتر از دکمه بازگشت استاده کنید.'
+                        text = 'درخواست دوستی شما برای کاربر مورد نظر ارسال شد پس از تایید, به لیست دوستات اضافه میشه.\nبرای اضافه کردن دوستان بیشتر از دکمه بازگشت استاده کنید.'
                         keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
                         keyboard = InlineKeyboardMarkup(keyboard)
                         message.reply(text=text, keyboard=keyboard)
