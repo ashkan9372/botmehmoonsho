@@ -10,7 +10,7 @@ from monogram.extentions.conversation import Conversation
 import re
 from panel.assist import *
 from panel.views import convert_date as cnv_date
-
+from django.utils import timezone
 
 conf = configs(appname='panel')
 bot = Monogram(**conf)
@@ -192,9 +192,10 @@ def lottery(message):
                         for friend in friends:
                             friend_username = friend['enter_name']
                             friend_id = friend['id']
+                            print(friend_username)
                             keyboard.append([
-                                InlineKeyboardButton(f"{friend_username}",
-                                                     callback_data=f"selectFriend-{friend_id}-{lottery.id}"),
+                                InlineKeyboardButton(f"❌ {friend_username}",
+                                                     callback_data=f"selectFriend-{friend_id}-{lottery.id}-{friend_username}"),
                             ])
                         friendList = INIsection(Bold('دوستان انتخاب شده'), [])
                         game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
@@ -211,15 +212,16 @@ def lottery(message):
                     else:
                         message.answer('شما هنوز ثبت نام خود را تکمیل نکرده اید.')
                 else:
-                    lottery = Lottery(profile=profile, register_date=get_time(), status='Registering')
+                    lottery = Lottery(profile=profile, register_date=timezone.now(), status='Registering')
                     lottery.save()
                     keyboard = []
                     for friend in friends:
                         friend_username = friend['enter_name']
                         friend_id = friend['id']
+                        print(friend_username)
                         keyboard.append([
-                            InlineKeyboardButton(f"{friend_username}",
-                                                 callback_data=f"selectFriend-{friend_id}-{lottery.id}"),
+                            InlineKeyboardButton(f"❌ {friend_username}",
+                                                 callback_data=f"selectFriend-{friend_id}-{lottery.id}-{friend_username}"),
                         ])
                     friendList = INIsection(Bold('دوستان انتخاب شده'), [])
                     game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
@@ -243,6 +245,58 @@ def lottery(message):
     else:
         message.answer(msg)
 
+from django.db.models import Count
+@bot.newMessage(pattern='📊 آمار و ارقام')
+def info(message):
+    text = ''
+    # for action in ['profile', 'friends']:
+    #     try:
+    #         winning_lotteries = Lottery.objects.filter(winning=True)
+    #         medals = "🥇🥈🥉🎖🎖"
+    #         profiles = winning_lotteries.values(action).annotate(count=Count(action)).order_by('-count')
+    #         lottery_data = []
+    #         for profile in profiles:
+    #             print(profile)
+    #             profile_id = profile['profile'] if action == 'profile' else profile['friends']
+    #             count = profile['count']
+    #             # Get lottery entries for the current profile
+    #             lottery_entries = Lottery.objects.filter(profile_id=profile_id, winning=True)
+    #             # Loop through lottery entries and build the data dictionary
+    #             index = 0
+    #             for lottery in lottery_entries:
+    #                 lottery_data.append(f"{lottery.profile.enter_name}-{count}-{medals[index]}")
+    #                 index += 1
+    #         if action == 'profile':
+    #             winners_text = INIsection(Bold('🏆 نفراتی که بیشترین بار برنده شدند'), lottery_data)
+    #             text += '\n'+winners_text
+    #         elif action == 'friends':
+    #             friends_text = INIsection(Bold('👥 نفراتی که بیشترین بار به عنوان دوست برنده شدند'), lottery_data)
+    #             text += '\n'+friends_text
+    #     except Lottery.DoesNotExist:
+    #         text += '\n'+ '🎖 فعلا برنده ای نداشتیم!'
+    # try:
+    #     # Count friend appearances for each user
+    #     friend_appearance_counts = Lottery.objects.values('friends').annotate(count=Count('friends')).order_by(
+    #         '-count')
+    #
+    #     # Extract top-ranked users (most chosen friends)
+    #     most_chosen_friends = []
+    #     for entry in friend_appearance_counts:
+    #         friend_id = entry['friends']
+    #         friend_profile = Profile.objects.get(id=friend_id)
+    #         most_chosen_friends.append(f"{friend_profile.enter_id}👤")
+    #
+    #     friends_text = INIsection(Bold('👥 نفراتی که بیشترین بار به عنوان دوست انتخاب شدند'), lottery_data)
+    #     text += '\n' + friends_text
+    # except Lottery.DoesNotExist:
+    #     text += '\n' + '🎖 فعلا برنده ای نداشتیم!'
+    #
+    # total_profiles = Profile.objects.count()
+    # text += '\n' + INIsection(Bold('🤖 تعداد اعضای ربات'), total_profiles)
+    #
+    # message.answer(text)
+
+
 def callback_query(query):
     chat_id = query.message.chat.id
     message_id = query.message.message_id
@@ -259,7 +313,7 @@ def callback_query(query):
                 friend_id = friend['id']
                 keyboard.append([
                     InlineKeyboardButton(f"{friend_username}", callback_data="bck-friend"),
-                    InlineKeyboardButton("حذف ❌", callback_data=f"rmfriend-{friend_id}-{chat_id}"),
+                    InlineKeyboardButton("❌ حذف", callback_data=f"rmfriend-{friend_id}-{chat_id}"),
                 ])
 
             if len(friends) > 20:
@@ -290,7 +344,7 @@ def callback_query(query):
         try:
             profile = Profile.objects.get(user_id=user_id)
             friend = profile.friends.get(id=friend_id)
-            friend.delete()
+            profile.friends.remove(friend)
             keyboard=[[InlineKeyboardButton("🔙 بازگشت", callback_data="listfriend")]]
             keyboard = InlineKeyboardMarkup(keyboard)
             text = 'یوزر مورد نظر با موفقیت از لیست دوستات حذف شد.'
@@ -323,8 +377,9 @@ def callback_query(query):
                 friend_profile.save()  # Optional for symmetry
 
                 text = 'درخواست کاربر موردنظر باموفقیت تایید شد.'
-                sendMessage(chat_id=chat_id, text=text)
-                text = f'کاربری با یورنیم({username})درخواست دوستی شمارا قبول کرد'
+                # sendMessage(chat_id=chat_id, text=text)
+                editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
+                text = 'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
                 sendMessage(chat_id=friend_id, text=text)
                 conv = Conversation(friend_id)
                 conv.cancel()
@@ -337,12 +392,17 @@ def callback_query(query):
         data = query.data.split('-')
         friend_id = data[1]
         username = data[2]
-        text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
-        sendMessage(chat_id=chat_id, text=text)
-        text = f'کاربری با یورنیم({username})درخواست دوستی شمارا رد کرد'
-        sendMessage(chat_id=friend_id, text=text)
-        conv = Conversation(friend_id)
-        conv.cancel()
+        try:
+            friend_profile = Profile.objects.get(user_id=chat_id)
+            text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
+            # sendMessage(chat_id=chat_id, text=text)
+            editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
+            text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا رد کرد'
+            sendMessage(chat_id=friend_id, text=text)
+            conv = Conversation(friend_id)
+            conv.cancel()
+        except Profile.DoesNotExist:
+            pass
 
     if 'editProfileFullname' in query.data:
         conv = Conversation(chat_id)
@@ -360,29 +420,45 @@ def callback_query(query):
         data = query.data.split('-')
         friend_id = data[1]
         lottery_id = data[2]
+        friend_name = data[3]
         try:
-            inline_keyboard = query.message.reply_markup['inline_keyboard']
-            for inner_list in inline_keyboard:
-                for item in inner_list:
-                    if item["callback_data"] == query.data:
-                        item.update({"text": " ✅"+item['text']})
-            inline_keyboard.append([
-                    InlineKeyboardButton('🎮 انتخاب فعالیت', callback_data=f"selectGame-{friend_id}-{lottery_id}"),
-                ])
-            keyboard = InlineKeyboardMarkup(inline_keyboard)
-            # print(keyboard)
-            friendList = []
+            print(friend_id, lottery_id, friend_name)
+
             lottery = Lottery.objects.get(id=lottery_id)
             profile = Profile.objects.get(id=friend_id)
-            lottery.friends.add(profile)
-            friends = lottery.friends.all()
-            for friend in friends:
-                friendList.append(friend.enter_name)
+            keyboard = query.message.reply_markup['inline_keyboard']
+            for inner_list in keyboard:
+                for item in inner_list:
+                    if item['text'] == '🎮 انتخاب فعالیت':
+                        print('selectGame:')
+                        keyboard.remove(inner_list)
+                        print(inner_list)
+                        print(item)
+                    if item["callback_data"] == query.data:
+                        if "✅" not in item["text"]:
+                            # text = f"✅ {item['text']}"
+                            text = item["text"].replace("❌ ", "✅ ")
+                            lottery.friends.add(profile)
+                        else:
+                            text = item["text"].replace("✅ ", "❌ ")
+                            lottery.friends.remove(profile)
+                        item.update({"text": text})
+
+            friendList = []
+            for friend in lottery.friends.all():
+                name = friend.enter_name
+                friendList.append(name)
+            if len(friendList):
+                select_game = InlineKeyboardButton('🎮 انتخاب فعالیت', callback_data=f"selectGame-{friend_id}-{lottery_id}")
+                if [select_game] not in keyboard:
+                    keyboard.append([select_game])
+            keyboard = InlineKeyboardMarkup(keyboard)
             friendList = INIsection(Bold('دوستان انتخاب شده'), friendList)
             game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
             msg = 'برای شرکت در قرعه کشی ابتدا باید از لیست زیر دوستان خودرا انتخاب کنید:'
             text = friendList + '\n' + game_name + '\n' + msg
             editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
+
         except Lottery.DoesNotExist:
             pass
 
@@ -455,7 +531,9 @@ def callback_query(query):
         card_number = Bold(setting.card_number)
         card_name = Bold(setting.card_name)
         payment_price = Bold(setting.price)
-        text = f"برای واریز مبلغ مورد نظر، لطفا به شماره کارت {card_number} به نام {card_name} وجه {payment_price} تومان را انتقال دهید.\nسپس با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
+        # text = "برای واریز مبلغ مورد نظر، لطفا به شماره کارت {card_number} به نام {card_name} وجه {payment_price} تومان را انتقال دهید.\nسپس با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
+        text = f"لطفا مبلغ {payment_price} نومان را به شماره کارت زیر واریز نمایید و با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
+        text += "\n" + f"{card_number}" + "\n" + f"{card_name}"
         keyboard = [
             [
                 InlineKeyboardButton("📑 ارسال فیش پرداخت", callback_data="paid"),
@@ -487,6 +565,9 @@ def filter_message(message):
       pattern_match = re.match(r'^/start', message.text)
     elif message.caption:
       pattern_match = re.match(r'^/start', message.caption)
+    # if message.text:
+    #     filter_patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال کد معرف', '👤 ویرایش اطلاعات', '👥 لیست دوستان','🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام']
+    #     pattern_match = re.match(filter_patterns, message.text)
     else:
       # Handle case where both text and caption are missing (optional)
       # print("Message object has no text or caption attribute.")
@@ -504,7 +585,9 @@ def filter_message(message):
     return False
 
 from django.db.models import Exists
+
 def any(message):
+
     print('any conversations:')
     # sendPhoto(message.chat.id, photo=InputFile('Screenshot (7).png'), caption='this is a test to sending photo.')
     # print(message)
@@ -512,7 +595,7 @@ def any(message):
     # Perform conversation tasks
     conv = Conversation(message.chat.id)
     data = conv.data()
-
+    print(data)
     if data and not filter_message(message):
 
         if data['callback_data'] == 'login':
@@ -547,7 +630,11 @@ def any(message):
                 [KeyboardButton('🎟 قرعه‌کشی')],
                 [KeyboardButton('📤 ارسال کد معرف'),KeyboardButton('📢 مشاهده کانال'),],
                 [KeyboardButton('👤 ویرایش اطلاعات'),KeyboardButton('👥 لیست دوستان'),],
-                [KeyboardButton('☎ پشتیبانی'),KeyboardButton('🤖 آموزش ربات'),],
+                [
+                    KeyboardButton('☎ پشتیبانی'),
+                    KeyboardButton('🤖 آموزش ربات'),
+                    KeyboardButton('📊 آمار و ارقام'),
+                ],
             ]
             keyboard = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
@@ -561,7 +648,7 @@ def any(message):
 
                     # Check if friend is already in user's friend list
                     if friend_profile not in profile.friends.all():
-                        text = f"کاربری با نام {friend_profile.enter_name} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                        text = f"کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
                         keyboard = [
                             [
                                 InlineKeyboardButton("✅ تایید", callback_data=f"acceptFriend-{message.chat.id}-{message.text}"),
@@ -653,7 +740,7 @@ def any(message):
 
 
 UPDATE_HANDLER = {
-    'message': [start, any, visit_channel, share_invite_code, friends_management, edit_profile, bot_tutorial, bot_support, lottery],
+    'message': [start, any, visit_channel, share_invite_code, friends_management, edit_profile, bot_tutorial, bot_support, lottery, info],
     'callback_query': [callback_query, ]
 }
 @csrf_exempt
