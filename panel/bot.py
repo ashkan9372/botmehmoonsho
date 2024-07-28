@@ -251,11 +251,11 @@ def lottery(message):
 @bot.newMessage(pattern='📚 اطلاعات قرعه کشی')
 def lottery_info(message):
     setting = Setting.objects.get(id=1)
-    start_time = setting.start_time
-    end_time = setting.end_time
-    lottery_time = setting.lottery_time
+    start_time = cnv_date(setting.start_time)
+    end_time = cnv_date(setting.end_time)
+    lottery_time = cnv_date(setting.lottery_time)
     # text = "ثبت نام در قرعه کشیهر هفتهاز روز ( روزی که تعیین کردم در پنل )ساعت ( ساعتی که تعیین کردم در پنل) شروع میشه وروز (روزی که تعیین کردم در پنل)ساعت (ساعتی که تعیین کردم در پنل) تمام میشه و زمان قرعه کشیو اعالم برنده ها( روز و ساعتی که در پنل برایقرعه کشی )می باشد"
-    text = f"ثبت نام در قرعه کشیهر هفتهاز روز {start_time} شروع میشه وروز {end_time} تمام میشه و زمان قرعه کشی اعلام برنده ها{lottery_time}می باشد"
+    text = f"ثبت نام در قرعه کشی هر هفته از روز {start_time} شروع میشه وروز {end_time} تمام میشه و زمان قرعه کشی اعلام برنده ها{lottery_time}می باشد"
     message.answer(text)
 
 
@@ -285,7 +285,7 @@ def info(message):
                 text += '\n'+friends_text
         except Lottery.DoesNotExist:
             text += '\n'+ '🎖 فعلا برنده ای نداشتیم!'
-    
+
     total_profiles = Profile.objects.count()
     text += '\n' + Bold('🤖 تعداد اعضای ربات') +': '+ str(total_profiles)
     message.answer(text)
@@ -555,54 +555,55 @@ def callback_query(query):
         text = 'لطفا عکس فیش واریزی خود را ارسال کنید:'
         query.message.answer(text)
 
-def filter_message(message):
-  """
-  Attempts to match a message text or caption against a pattern and handles potential errors.
-
-  Args:
-      message: A message object with potentially text or caption attributes.
-
-  Returns:
-      bool: True if the pattern matches, False otherwise.
-  """
+def filter_message2(message):
 
   try:
     # Check if text or caption attribute exists
-    if message.text:
-      pattern_match = re.match(r'^/start', message.text)
-    elif message.caption:
-      pattern_match = re.match(r'^/start', message.caption)
-    # if message.text:
-    #     filter_patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال کد معرف', '👤 ویرایش اطلاعات', '👥 لیست دوستان','🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام']
-    #     pattern_match = re.match(filter_patterns, message.text)
+    text = message.text or message.caption
+    if text:
+        filter_patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال کد معرف', '👤 ویرایش اطلاعات', '👥 لیست دوستان','🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام']
+        for pattern in filter_patterns:
+            pattern_match = re.match(pattern, text)
+            print(pattern_match, bool(pattern_match))
+            if pattern_match:
+                return True
+                break
     else:
-      # Handle case where both text and caption are missing (optional)
-      # print("Message object has no text or caption attribute.")
+      # Handle case where both text and caption are missing
       return False
-
-    # If the pattern matches, return True
-    if pattern_match:
-      return True
-    else:
-      return False
-
   except AttributeError as e:
     # Handle case where message object lacks required attributes
+    print(f"Error accessing message attributes: {e}")
+    return
+
+def filter_message(message):
+  try:
+      text = message.text or message.caption
+      if text:
+          patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال کد معرف', '👤 ویرایش اطلاعات', '👥 لیست دوستان', '🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام']
+          compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
+          for pattern in compiled_patterns:
+              match = pattern.search(text)
+              if match:
+                  return True
+          return False
+      else:
+          return False
+  except AttributeError as e:
     print(f"Error accessing message attributes: {e}")
     return False
 
 from django.db.models import Exists
 
 def any(message):
-
-    print('any conversations:')
     # sendPhoto(message.chat.id, photo=InputFile('Screenshot (7).png'), caption='this is a test to sending photo.')
     # print(message)
     # print(message.photo != None)
     # Perform conversation tasks
     conv = Conversation(message.chat.id)
     data = conv.data()
-    print(data)
+    print('conversations:', data)
+    print(filter_message(message))
     if data and not filter_message(message):
 
         if data['callback_data'] == 'login':
