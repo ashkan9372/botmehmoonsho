@@ -181,120 +181,114 @@ def lottery(message):
             friends = profile.friends.all()
             friends = list(friends.values())
 
-            if len(friends) != 0:
-                lottery = Lottery.objects.filter(profile=profile)
-                if lottery.exists():
-                    lottery = lottery.last()
-                    if lottery.status == "Unregistered":
-                        lottery = Lottery(profile=profile, register_date=timezone.now(), status='Registering')
-                        lottery.save()
-                        keyboard = []
-                        for friend in friends:
-                            friend_username = friend['enter_name']
-                            friend_id = friend['id']
-                            print(friend_username)
-                            keyboard.append([
-                                InlineKeyboardButton(f"❌ {friend_username}",
-                                                     callback_data=f"selectFriend-{friend_id}-{lottery.id}-{friend_username}"),
-                            ])
-                        friendList = INIsection(Bold('دوستان انتخاب شده'), [])
-                        game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
-                        msg = 'برای شرکت در قرعه کشی ابتدا باید از لیست زیر دوستان خودرا انتخاب کنید:'
-                        text = friendList + '\n' + game_name + '\n' + msg
-                        keyboard = InlineKeyboardMarkup(keyboard)
-                        message.answer(text, keyboard=keyboard)
-                    elif lottery.status == "Registered":
-                        path_file = lottery.ticket_picture.url[1:]
-                        lottery_time = cnv_date(lottery_time)
-                        text = 'شما قبلا ثبت نام کرده اید'
-                        text = text + '\n' + f'زمان قرعه کشی:{lottery_time}'
-                        sendPhoto(chat_id=message.chat.id, photo=InputFile(path_file), caption=text)
-                    else:
-                        message.answer('شما هنوز ثبت نام خود را تکمیل نکرده اید.')
-                else:
+            lottery = Lottery.objects.filter(profile=profile)
+            if lottery.exists():
+                lottery = lottery.last()
+                if lottery.status == "Unregistered":
                     lottery = Lottery(profile=profile, register_date=timezone.now(), status='Registering')
                     lottery.save()
                     keyboard = []
-                    for friend in friends:
-                        friend_username = friend['enter_name']
-                        friend_id = friend['id']
-                        print(friend_username)
-                        keyboard.append([
-                            InlineKeyboardButton(f"❌ {friend_username}",
-                                                 callback_data=f"selectFriend-{friend_id}-{lottery.id}-{friend_username}"),
-                        ])
+                    friends = lottery.friends.all()
+                    try:
+                        friendList = INIsection(Bold('دوستان انتخاب شده'), [])
+                        game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
+                        msg = 'لطفا یکی از بازیهای زیر رو انتخاب کنید تا در صورت برنده شدن با دوستانتون انجام بدید:'
+                        text = friendList + '\n' + game_name + '\n' + msg
+                        games = Games.objects.all()
+                        keyboard = []
+                        for game in games:
+                            inline_keyboard = InlineKeyboardButton(game.name,
+                                                                   callback_data=f'selectedGame-{lottery.id}-{game.id}-{game.name}')
+                            keyboard.append(inline_keyboard)
+                        keyboard = keyboard_generator(keyboard)
+                        keyboard = InlineKeyboardMarkup(keyboard)
+                        # query.message.answer(text, keyboard=keyboard)
+                        # editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
+                        message.answer(text, keyboard=keyboard)
+                    except Games.DoesNotExist:
+                        text = 'هیچ فعالیت یافت نشد!احتمالا ادمین هیچ فعالیت اضافه نکرده برای اطلاعات بیشتر با پشتیبانی تماس بگیرین.'
+                        message.answer(text)
+
+                elif lottery.status == "Registered":
+                    path_file = lottery.ticket_picture.url[1:]
+                    lottery_time = cnv_date(lottery_time)
+                    text = 'شما قبلا ثبت نام کرده اید'
+                    text = text + '\n' + f'زمان قرعه کشی:{lottery_time}'
+                    sendPhoto(chat_id=message.chat.id, photo=InputFile(path_file), caption=text)
+                else:
+                    message.answer('شما هنوز ثبت نام خود را تکمیل نکرده اید.')
+            else:
+
+                lottery = Lottery(profile=profile, register_date=timezone.now(), status='Registering')
+                lottery.save()
+
+                try:
                     friendList = INIsection(Bold('دوستان انتخاب شده'), [])
                     game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
-                    msg = 'برای شرکت در قرعه کشی ابتدا باید از لیست زیر دوستان خودرا انتخاب کنید:'
+                    msg = 'برای شرکت در قرعه کشی ابتدا از لیست فعالیت های موجود یک فعالیت را انتخاب کنید:'
                     text = friendList + '\n' + game_name + '\n' + msg
+                    games = Games.objects.all()
+                    keyboard = []
+                    for game in games:
+                        inline_keyboard = InlineKeyboardButton(game.name,
+                                                               callback_data=f'selectedGame-{lottery.id}-{game.id}-{game.name}')
+                        keyboard.append(inline_keyboard)
+                    keyboard = keyboard_generator(keyboard)
                     keyboard = InlineKeyboardMarkup(keyboard)
+                    # query.message.answer(text, keyboard=keyboard)
+                    # editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
                     message.answer(text, keyboard=keyboard)
+                except Games.DoesNotExist:
+                    text = 'هیچ فعالیت یافت نشد!احتمالا ادمین هیچ فعالیت اضافه نکرده برای اطلاعات بیشتر با پشتیبانی تماس بگیرین.'
+                    message.answer(text)
 
-            else:
-                text = 'شماه هیچ دوستی ندارید.\nلطفا از قسمت "➕ افزودن دوست" اقدام به اضافه کردن دوستان خود کنید.'
-                keyboard = [
-                    [
-                        InlineKeyboardButton("➕ افزودن دوست", callback_data="addfriend"),
-                    ],
-                ]
-                keyboard = InlineKeyboardMarkup(keyboard)
-                message.answer(text, keyboard=keyboard)
         except Profile.DoesNotExist:
             pass
 
     else:
         message.answer(msg)
 
+@bot.newMessage(pattern='📚 اطلاعات قرعه کشی')
+def lottery_info(message):
+    setting = Setting.objects.get(id=1)
+    start_time = setting.start_time
+    end_time = setting.end_time
+    lottery_time = setting.lottery_time
+    # text = "ثبت نام در قرعه کشیهر هفتهاز روز ( روزی که تعیین کردم در پنل )ساعت ( ساعتی که تعیین کردم در پنل) شروع میشه وروز (روزی که تعیین کردم در پنل)ساعت (ساعتی که تعیین کردم در پنل) تمام میشه و زمان قرعه کشیو اعالم برنده ها( روز و ساعتی که در پنل برایقرعه کشی )می باشد"
+    text = f"ثبت نام در قرعه کشیهر هفتهاز روز {start_time} شروع میشه وروز {end_time} تمام میشه و زمان قرعه کشی اعلام برنده ها{lottery_time}می باشد"
+    message.answer(text)
+
+
 from django.db.models import Count
 @bot.newMessage(pattern='📊 آمار و ارقام')
 def info(message):
     text = ''
-    # for action in ['profile', 'friends']:
-    #     try:
-    #         winning_lotteries = Lottery.objects.filter(winning=True)
-    #         medals = "🥇🥈🥉🎖🎖"
-    #         profiles = winning_lotteries.values(action).annotate(count=Count(action)).order_by('-count')
-    #         lottery_data = []
-    #         for profile in profiles:
-    #             print(profile)
-    #             profile_id = profile['profile'] if action == 'profile' else profile['friends']
-    #             count = profile['count']
-    #             # Get lottery entries for the current profile
-    #             lottery_entries = Lottery.objects.filter(profile_id=profile_id, winning=True)
-    #             # Loop through lottery entries and build the data dictionary
-    #             index = 0
-    #             for lottery in lottery_entries:
-    #                 lottery_data.append(f"{lottery.profile.enter_name}-{count}-{medals[index]}")
-    #                 index += 1
-    #         if action == 'profile':
-    #             winners_text = INIsection(Bold('🏆 نفراتی که بیشترین بار برنده شدند'), lottery_data)
-    #             text += '\n'+winners_text
-    #         elif action == 'friends':
-    #             friends_text = INIsection(Bold('👥 نفراتی که بیشترین بار به عنوان دوست برنده شدند'), lottery_data)
-    #             text += '\n'+friends_text
-    #     except Lottery.DoesNotExist:
-    #         text += '\n'+ '🎖 فعلا برنده ای نداشتیم!'
-    # try:
-    #     # Count friend appearances for each user
-    #     friend_appearance_counts = Lottery.objects.values('friends').annotate(count=Count('friends')).order_by(
-    #         '-count')
-    #
-    #     # Extract top-ranked users (most chosen friends)
-    #     most_chosen_friends = []
-    #     for entry in friend_appearance_counts:
-    #         friend_id = entry['friends']
-    #         friend_profile = Profile.objects.get(id=friend_id)
-    #         most_chosen_friends.append(f"{friend_profile.enter_id}👤")
-    #
-    #     friends_text = INIsection(Bold('👥 نفراتی که بیشترین بار به عنوان دوست انتخاب شدند'), lottery_data)
-    #     text += '\n' + friends_text
-    # except Lottery.DoesNotExist:
-    #     text += '\n' + '🎖 فعلا برنده ای نداشتیم!'
-    #
-    # total_profiles = Profile.objects.count()
-    # text += '\n' + INIsection(Bold('🤖 تعداد اعضای ربات'), total_profiles)
-    #
-    # message.answer(text)
+    for action in ['profile', 'friends']:
+        try:
+            winning_lotteries = Lottery.objects.filter(winning=True)
+            medals = "🥇🥈🥉🎖🎖"
+            profiles = winning_lotteries.values(action).annotate(count=Count(action)).order_by('-count')
+            lottery_data = []
+            for index, profile in enumerate(profiles):
+                # print(index, profile)
+                profile_id = profile['profile'] if action == 'profile' else profile['friends']
+                count = profile['count']
+                # Get lottery entries for the current profile
+                if profile_id:
+                    profile = Profile.objects.get(id=profile_id)
+                    lottery_data.append(f"{medals[index] if index <= 4 else ''} {profile.enter_name}")
+            if action == 'profile':
+                winners_text = INIsection(Bold('🏆 نفراتی که بیشترین بار برنده شدند'), lottery_data)
+                text += '\n'+winners_text
+            elif action == 'friends':
+                friends_text = INIsection(Bold('👥 نفراتی که بیشترین بار به عنوان دوست برنده شدند'), lottery_data)
+                text += '\n'+friends_text
+        except Lottery.DoesNotExist:
+            text += '\n'+ '🎖 فعلا برنده ای نداشتیم!'
+    
+    total_profiles = Profile.objects.count()
+    text += '\n' + Bold('🤖 تعداد اعضای ربات') +': '+ str(total_profiles)
+    message.answer(text)
 
 
 def callback_query(query):
@@ -418,18 +412,51 @@ def callback_query(query):
 
     if 'selectFriend' in query.data:
         data = query.data.split('-')
+        lottery_id = data[1]
+
+        lottery = Lottery.objects.get(id=lottery_id)
+        friends = lottery.profile.friends.all()
+        keyboard = []
+        if len(friends) != 0:
+            for friend in friends:
+                friend_name = friend.enter_name
+                friend_id = friend.id
+                keyboard.append([
+                    InlineKeyboardButton(f"❌ {friend_name}",
+                                         callback_data=f"selectedFriend-{friend_id}-{lottery.id}-{friend_name}"),
+                ])
+            game_name = lottery.game.name
+            friendList = INIsection(Bold('دوستان انتخاب شده'), [])
+            game_name = INIsection(Bold('فعالیت انتخاب شده'), game_name)
+            msg = 'برای شرکت در قرعه کشی ابتدا باید از لیست زیر دوستان خودرا انتخاب کنید:'
+            text = friendList + '\n' + game_name + '\n' + msg
+            keyboard = InlineKeyboardMarkup(keyboard)
+            # query.message.answer(text, keyboard=keyboard)
+            editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
+        else:
+            text = 'شماه هیچ دوستی ندارید.\nلطفا از قسمت "➕ افزودن دوست" اقدام به اضافه کردن دوستان خود کنید.'
+            keyboard = [
+                [
+                    InlineKeyboardButton("➕ افزودن دوست", callback_data="addfriend"),
+                ],
+            ]
+            keyboard = InlineKeyboardMarkup(keyboard)
+            # query.message.answer(text, keyboard=keyboard)
+            editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
+
+    if 'selectedFriend' in query.data:
+        data = query.data.split('-')
         friend_id = data[1]
         lottery_id = data[2]
         friend_name = data[3]
+        print(friend_id, lottery_id, friend_name)
         try:
-            print(friend_id, lottery_id, friend_name)
-
             lottery = Lottery.objects.get(id=lottery_id)
             profile = Profile.objects.get(id=friend_id)
             keyboard = query.message.reply_markup['inline_keyboard']
             for inner_list in keyboard:
                 for item in inner_list:
-                    if item['text'] == '🎮 انتخاب فعالیت':
+                    if item['text'] == '💳 رفتن به مرحله پرداخت':
                         print('selectGame:')
                         keyboard.remove(inner_list)
                         print(inner_list)
@@ -449,48 +476,25 @@ def callback_query(query):
                 name = friend.enter_name
                 friendList.append(name)
             if len(friendList):
-                select_game = InlineKeyboardButton('🎮 انتخاب فعالیت', callback_data=f"selectGame-{friend_id}-{lottery_id}")
-                if [select_game] not in keyboard:
-                    keyboard.append([select_game])
+                payment = InlineKeyboardButton('💳 رفتن به مرحله پرداخت', callback_data=f"payment")
+                if [payment] not in keyboard:
+                    keyboard.append([payment])
             keyboard = InlineKeyboardMarkup(keyboard)
             friendList = INIsection(Bold('دوستان انتخاب شده'), friendList)
-            game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
+            game_name = lottery.game.name
+            game_name = INIsection(Bold('فعالیت انتخاب شده'), game_name)
             msg = 'برای شرکت در قرعه کشی ابتدا باید از لیست زیر دوستان خودرا انتخاب کنید:'
             text = friendList + '\n' + game_name + '\n' + msg
             editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
 
         except Lottery.DoesNotExist:
-            pass
-
-    if 'selectGame' in query.data:
-        data = query.data.split('-')
-        friend_id = data[1]
-        lottery_id = data[2]
-        lottery = Lottery.objects.get(id=lottery_id)
-        friends = lottery.friends.all()
-        print(friends, len(friends))
-        try:
-            text = 'برای شرکت در قرعه کشی ابتدا از لیست فعالیت های موجود یک فعالیت را انتخاب کنید:'
-            games = Games.objects.all()
-            keyboard = []
-            for game in games:
-                inline_keyboard = InlineKeyboardButton(game.name, callback_data=f'selectedGame-{friend_id}-{lottery_id}-{game.id}-{game.name}')
-                keyboard.append([inline_keyboard])
-            keyboard = InlineKeyboardMarkup(keyboard)
-            # query.message.answer(text, keyboard=keyboard)
-            editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
-
-        except Games.DoesNotExist:
-            text = 'هیچ فعالیت یافت نشد!احتمالا ادمین هیچ فعالیت اضافه نکرده برای اطلاعات بیشتر با پشتیبانی تماس بگیرین.'
-            message.answer(text)
-
+            print('lottery does not exist.')
 
     if 'selectedGame' in query.data:
         data = query.data.split('-')
-        friend_id = data[1]
-        lottery_id = data[2]
-        game_id = data[3]
-        game_name = data[4]
+        lottery_id = data[1]
+        game_id = data[2]
+        game_name = data[3]
 
         try:
             games = Games.objects.all()
@@ -498,24 +502,27 @@ def callback_query(query):
             for game in games:
                 gameName = "✅ "+game.name if game.name == game_name else game.name
                 # print(game_name, gameName, game.name)
-                inline_keyboard = InlineKeyboardButton(gameName, callback_data=f'selectedGame-{friend_id}-{lottery_id}-{game.id}-{gameName}')
-                keyboard.append([inline_keyboard])
+                inline_keyboard = InlineKeyboardButton(gameName, callback_data=f'selectedGame-{lottery_id}-{game.id}-{gameName}')
+                keyboard.append(inline_keyboard)
+
+            keyboard = keyboard_generator(keyboard)
             if '✅' not in game_name:
                 keyboard.append([
-                        InlineKeyboardButton('💳 پرداخت', callback_data=f"payment"),
+                        InlineKeyboardButton('رفتن به انتخاب دوستان', callback_data=f"selectFriend-{lottery_id}")
                 ])
+
             keyboard = InlineKeyboardMarkup(keyboard)
 
-            friendList = []
+            # friendList = []
             lottery = Lottery.objects.filter(id=lottery_id).last()
-            profile = Profile.objects.get(id=friend_id)
-            lottery.friends.add(profile)
-            friends = lottery.friends.all()
+            # profile = Profile.objects.get(id=friend_id)
+            # lottery.friends.add(profile)
+            # friends = lottery.friends.all()
             lottery.game = Games.objects.get(id=game_id)
             lottery.save()
-            for friend in friends:
-                friendList.append(friend.enter_name)
-            friendList = INIsection(Bold('دوستان انتخاب شده'), friendList)
+            # for friend in friends:
+            #     friendList.append(friend.enter_name)
+            friendList = INIsection(Bold('دوستان انتخاب شده'), [])
             game_name = '' if '✅' in game_name else game_name
             game_name = INIsection(Bold('فعالیت انتخاب شده'), game_name)
             msg = 'برای شرکت در قرعه کشی ابتدا باید از لیست زیر دوستان خودرا انتخاب کنید:'
@@ -628,12 +635,12 @@ def any(message):
             text = '✅ اطلاعاتت با موفقیت تکمیل شد!'
             keyboard = [
                 [KeyboardButton('🎟 قرعه‌کشی')],
-                [KeyboardButton('📤 ارسال کد معرف'),KeyboardButton('📢 مشاهده کانال'),],
+                [KeyboardButton('📚 اطلاعات قرعه کشی'),KeyboardButton('📤 ارسال کد معرف'),KeyboardButton('📢 مشاهده کانال'),],
                 [KeyboardButton('👤 ویرایش اطلاعات'),KeyboardButton('👥 لیست دوستان'),],
                 [
                     KeyboardButton('☎ پشتیبانی'),
-                    KeyboardButton('🤖 آموزش ربات'),
                     KeyboardButton('📊 آمار و ارقام'),
+                    KeyboardButton('🤖 آموزش ربات'),
                 ],
             ]
             keyboard = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
@@ -740,7 +747,7 @@ def any(message):
 
 
 UPDATE_HANDLER = {
-    'message': [start, any, visit_channel, share_invite_code, friends_management, edit_profile, bot_tutorial, bot_support, lottery, info],
+    'message': [start, any, visit_channel, share_invite_code, friends_management, edit_profile, bot_tutorial, bot_support, lottery, lottery_info, info],
     'callback_query': [callback_query, ]
 }
 @csrf_exempt
