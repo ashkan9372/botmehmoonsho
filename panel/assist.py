@@ -4,6 +4,7 @@ from django.utils import timezone
 import jdatetime
 from PIL import ImageFont, Image, ImageDraw
 from django.conf import settings
+import re
 
 def generate_uid():
 	return str(uuid.uuid4()).split("-")[0]
@@ -160,3 +161,35 @@ def keyboard_generator(my_list):
     paired_array.append(my_list[i:i+3])
     i += 3
   return paired_array
+
+
+def is_valid_username(username):
+    """
+    بررسی می‌کند که آیا یک نام کاربری فقط شامل حروف انگلیسی است و با عدد شروع نمی‌شود یا خیر.
+
+    Args:
+        username: نام کاربری مورد بررسی
+
+    Returns:
+        True اگر نام کاربری معتبر باشد، در غیر این صورت False.
+    """
+
+    # الگوی منظم برای بررسی نام کاربری معتبر:
+    pattern = r"^[a-zA-Z]+[a-zA-Z0-9]*$"
+
+    try:
+        if isinstance(username, str):
+            if re.match(pattern, username):
+                return True, ''
+            else:
+                return False,  "نام کاربری باید با حرف انگلیسی شروع شود و شامل حروف انگلیسی و اعداد باشد."
+        else:
+            return False, "نام کاربری باید یک رشته باشد."
+    except TypeError:
+        return False, "نوع ورودی نامعتبر است."
+
+def is_persian_name(text):
+  pattern = r'^[\u0600-\u06FF\s]+$'
+  match = re.match(pattern, text)
+
+  return bool(match)

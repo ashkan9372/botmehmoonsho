@@ -622,31 +622,39 @@ def any(message):
                 text = 'لطفا کد معرف را از دوستان خود بگیرید یا از طریق لینک معرف آنها اقدام کنید, کد وارد شده صحیح نیست دوباره وارد کنید:'
                 message.answer(text)
         if data['callback_data'] == 'enter_name':
-            profile = Profile.objects.get(user_id=message.chat.id)
-            profile.enter_name = message.text.lower()
-            profile.save()
-            conv.change_callback_data(callback_data='enter_id')
-            text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
-            message.answer(text)
-        if data['callback_data'] == 'enter_id':
-            profile = Profile.objects.get(user_id=message.chat.id)
-            profile.enter_id = message.text.lower()
-            profile.save()
-            conv.cancel()
-            text = '✅ اطلاعاتت با موفقیت تکمیل شد!'
-            keyboard = [
-                [KeyboardButton('🎟 قرعه‌کشی')],
-                [KeyboardButton('📚 اطلاعات قرعه کشی'),KeyboardButton('📤 ارسال کد معرف'),KeyboardButton('📢 مشاهده کانال'),],
-                [KeyboardButton('👤 ویرایش اطلاعات'),KeyboardButton('👥 لیست دوستان'),],
-                [
-                    KeyboardButton('☎ پشتیبانی'),
-                    KeyboardButton('📊 آمار و ارقام'),
-                    KeyboardButton('🤖 آموزش ربات'),
-                ],
-            ]
-            keyboard = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+            if is_persian_name(message.text):
+                profile = Profile.objects.get(user_id=message.chat.id)
+                profile.enter_name = message.text.lower()
+                profile.save()
+                conv.change_callback_data(callback_data='enter_id')
+                text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+                message.answer(text)
+            else:
+                message.answer(f"خطا! لطفا نام و نام خانوادگی خود را با {Bold('حروف فارسی')} وارد کنید")
 
-            message.answer(text, keyboard=keyboard)
+        if data['callback_data'] == 'enter_id':
+            text_status, msg = is_valid_username(message.text)
+            if text_status:
+                profile = Profile.objects.get(user_id=message.chat.id)
+                profile.enter_id = message.text.lower()
+                profile.save()
+                conv.cancel()
+                text = '✅ اطلاعاتت با موفقیت تکمیل شد!'
+                keyboard = [
+                    [KeyboardButton('🎟 قرعه‌کشی')],
+                    [KeyboardButton('📚 اطلاعات قرعه کشی'),KeyboardButton('📤 ارسال کد معرف'),KeyboardButton('📢 مشاهده کانال'),],
+                    [KeyboardButton('👤 ویرایش اطلاعات'),KeyboardButton('👥 لیست دوستان'),],
+                    [
+                        KeyboardButton('☎ پشتیبانی'),
+                        KeyboardButton('📊 آمار و ارقام'),
+                        KeyboardButton('🤖 آموزش ربات'),
+                    ],
+                ]
+                keyboard = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+                message.answer(text, keyboard=keyboard)
+            else:
+                message.answer(msg)
         if data['callback_data'] == 'addfriend':
             try:
                 profile = Profile.objects.get(user_id=message.chat.id)
