@@ -602,7 +602,7 @@ def any(message):
     data = conv.data()
     print('conversations:', data)
     print(filter_message(message))
-    if data and not filter_message(message):
+    if data and (filter_message(message) == False):
 
         if data['callback_data'] == 'login':
             # check validation of code:
