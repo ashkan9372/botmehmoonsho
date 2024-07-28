@@ -6,6 +6,9 @@ from panel.assist import generate_uid
 class Games(models.Model):
     name = models.CharField(max_length=100)
 
+from django.db import models
+
+
 class Profile(models.Model):
   enter_name = models.CharField(max_length=255, blank=True, null=True)
   enter_id = models.CharField(max_length=255, blank=True, null=True)
@@ -13,13 +16,17 @@ class Profile(models.Model):
   username = models.CharField(max_length=255, blank=True, null=True)
   picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
   user_id = models.IntegerField()
-  friends = models.ManyToManyField('self', blank=True)  # Allows users to be friends with each other
+  friends = models.ManyToManyField('self', through='profileFriend', blank=True)
   login_code = models.CharField(max_length=255, blank=True, null=True)  # Can be blank if not used
   referral_code = models.CharField(max_length=255, blank=True, null=True, default=generate_uid())  # Can be blank if not used
 
   def __str__(self):
       return f"{self.username} ({self.full_name})"  # Use f-strings for cleaner formatting
 
+class profileFriend(models.Model):
+    from_user = models.ForeignKey(Profile, related_name='friend_set', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(Profile, related_name='to_friend_set', on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('rejected', 'Rejected')])
 
 class Lottery(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='lottery_entries')  # User who participated
