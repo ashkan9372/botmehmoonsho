@@ -141,3 +141,22 @@ def timeValidation(start_time, end_time):
         error_msg = f"An error occurred during time validation: {e}"
         print(error_msg)
         return False, ""
+
+
+def keyboard_generator(my_list):
+  """
+  Creates a paired array from a given list.
+
+  Args:
+    my_list: The input list.
+
+  Returns:
+    A list of lists, where each inner list contains at most two elements.
+  """
+
+  paired_array = []
+  i = 0
+  while i < len(my_list):
+    paired_array.append(my_list[i:i+3])
+    i += 3
+  return paired_array
