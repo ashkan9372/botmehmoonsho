@@ -8,7 +8,7 @@ class Games(models.Model):
 
 class Profile(models.Model):
   enter_name = models.CharField(max_length=255, blank=True, null=True)
-  enter_id = models.CharField(max_length=255, blank=True, null=True)
+  enter_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
   full_name = models.CharField(max_length=255, blank=True, null=True)
   username = models.CharField(max_length=255, blank=True, null=True)
   picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)

@@ -66,9 +66,23 @@ def WinningView(request):
 def SettingsView(request):
     return render(request, 'Settings.html')
 
+from django.contrib.auth import authenticate
 def LoginView(request):
-    return render(request, 'Login.html')
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+        print(username, password)
 
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            # Login successful
+            return JsonResponse(generate_response(message='successful'))
+        else:
+            # Login failed
+            return JsonResponse(generate_response(error='Login failed'))
+    else:
+        return render(request, 'Login.html')
 
 def get_users(request):
     if request.method == 'GET':

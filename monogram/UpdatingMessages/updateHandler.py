@@ -7,19 +7,38 @@ from panel.models import Setting, Profile
 from monogram.methods import getChatMember
 from monogram.types import ChatMember, InlineKeyboardMarkup, InlineKeyboardButton
 from monogram.extentions.conversation import Conversation
+import re
+def is_command(message):
+  try:
+      print('msggggg:', message.photo, message.text)
+      text = message.text or message.caption
+      if text:
+          patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال کد معرف', '👤 ویرایش اطلاعات', '👥 لیست دوستان', '🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام', '📚 اطلاعات قرعه کشی']
+          for pattern in patterns:
+              match = re.match(pattern, message.text)
+              print('match is:',pattern,message.text, match, bool(match))
+              if match:
+                  return True
+          return False
+
+      else:
+          return False
+  except AttributeError as e:
+    print(f"Error accessing message attributes: {e}")
+    return False
 
 def check_regester(message):
     setting = Setting.objects.get(id=1)
     channel = setting.channel
     chat_member = getChatMember(chat_id=channel, user_id=message.chat.id)
-    chat_member = ChatMember(**chat_member['result'])
-    status = chat_member.status
-    if status != 'member':
+    chat_member = chat_member['result']
+    status = chat_member['status']
+    if status != 'member' and status != 'creator' and status != 'administrator':
         channel = channel.replace('@', '')
         url = 'https://t.me/' + channel
         keyboard = [[InlineKeyboardButton("🔗 کانال", url)]]
         keyboard = InlineKeyboardMarkup(keyboard)
-        message.answer("برای استفاده از ربات  ابتدا باید عضو کانال ما شوید.", keyboard=keyboard)
+        message.answer("برای استفاده از ربات  ابتدا باید عضو کانال ما شوید. پس از عضو شدن مجدد از دستور /start را وارد کنید.", keyboard=keyboard)
         return False
     else:
         text = 'شما هنوز ثبت نام نکردید, برای ثبت نام از دستور /start استفاده کنید.'
@@ -31,8 +50,8 @@ def check_regester(message):
         try:
             user = Profile.objects.get(user_id=message.chat.id)
             if user.status != 'Registered':
-                print('state 1:UNRegistered', not regestering)
-                if not regestering:
+                print('state 1:UNRegistered', regestering, is_command(message))
+                if regestering and (is_command(message)):
                     print('state 1:regestering')
                     message.answer(text)
                     return False
@@ -41,12 +60,11 @@ def check_regester(message):
             else:
                 return True
         except Profile.DoesNotExist:
-            print('state 2', not regestering)
-            if regestering:
-                message.answer(text)
-                return False
-            else:
+            print('state 2', regestering, message.text == '/start')
+            if regestering or message.text == '/start':
                 return True
+            else:
+                return False
 
 
 def UpdateHandler(request, UPDATE_HANDLER):

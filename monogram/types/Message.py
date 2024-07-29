@@ -172,66 +172,47 @@ class Message:
         self.author_signature = author_signature
         self.text = text
         self.entities = entities
-        self.animation = Animation(**animation) if animation else animation
-        self.audio = Audio(**audio) if audio else audio
-        self.document = Document(**document) if document else document
+        self.animation = animation
+        self.audio = audio
+        self.document = document
         self.photo = [PhotoSize(**ph) for ph in photo] if photo else photo
         self.sticker = sticker
         self.story = story
-        self.video = Video(**video) if video else video
-        self.video_note = VideoNote(**video_note) if video_note else video_note
-        self.voice = Voice(**voice) if voice else voice
+        self.video = video
+        self.video_note = video_note
+        self.voice = voice
         self.caption = caption
         self.caption_entities = caption_entities
         self.has_media_spoiler = has_media_spoiler
-        self.contact = Contact(**contact) if contact else contact
-        self.dice = Dice(**dice) if dice else dice
+        self.contact = contact
+        self.dice = dice
         self.game = game
-        self.poll = Poll(**poll) if poll else poll
-        self.venue = Venue(**venue) if venue else venue
-        self.location = Location(**location) if location else location
+        self.poll = poll
+        self.venue = venue
+        self.location = location
         self.new_chat_members = new_chat_members
-        self.left_chat_member = (
-            User(**left_chat_member) if left_chat_member else left_chat_member
-        )
+        self.left_chat_member = left_chat_member
         self.new_chat_title = new_chat_title
         self.new_chat_photo = new_chat_photo
         self.delete_chat_photo = delete_chat_photo
         self.group_chat_created = group_chat_created
         self.supergroup_chat_created = supergroup_chat_created
         self.channel_chat_created = channel_chat_created
-        self.message_auto_delete_timer_changed = (
-            MessageAutoDeleteTimerChanged(**message_auto_delete_timer_changed)
-            if message_auto_delete_timer_changed
-            else None
-        )
+        self.message_auto_delete_timer_changed = None
         self.migrate_to_chat_id = migrate_to_chat_id
         self.migrate_from_chat_id = migrate_from_chat_id
-        self.pinned_message = (
-            Message(**pinned_message) if pinned_message else pinned_message
-        )
-        self.invoice = Invoice(**invoice) if invoice else None
-        self.successful_payment = (
-            SuccessfulPayment(**successful_payment) if successful_payment else None
-        )
-        self.user_shared = UserShared(**user_shared) if user_shared else None
-        self.chat_shared = ChatShared(**chat_shared) if chat_shared else None
+        self.pinned_message = pinned_message
+        self.invoice =None
+        self.successful_payment = None
+
+        self.user_shared = None
+        self.chat_shared = None
         self.connected_website = connected_website
-        self.write_access_allowed = (
-            WriteAccessAllowed(**write_access_allowed) if write_access_allowed else None
-        )
+        self.write_access_allowed = None
         self.passport_data = passport_data
-        self.proximity_alert_triggered = (
-            ProximityAlertTriggered(**proximity_alert_triggered)
-            if proximity_alert_triggered
-            else None
-        )
-        self.forum_topic_created = (
-            ForumTopicCreated(**forum_topic_created) if forum_topic_created else None
-        )
-        self.forum_topic_edited = (
-            ForumTopicEdited(**forum_topic_edited) if forum_topic_edited else None
-        )
+        self.proximity_alert_triggered = None
+        self.forum_topic_created = None
+        self.forum_topic_edited = None
 
         # this types not be created yet:
 
@@ -241,14 +222,8 @@ class Message:
         # self.general_forum_topic_unhidden = GeneralForumTopicUnhidden(**general_forum_topic_unhidden)
         # self.video_chat_scheduled = VideoChatScheduled(**video_chat_scheduled)
         # self.video_chat_started = VideoChatStarted(**video_chat_started)
-        self.video_chat_ended = (
-            VideoChatEnded(**video_chat_ended) if video_chat_ended else None
-        )
-        self.video_chat_participants_invited = (
-            VideoChatParticipantsInvited(**video_chat_participants_invited)
-            if video_chat_participants_invited
-            else None
-        )
+        self.video_chat_ended = None
+        self.video_chat_participants_invited = None
         self.web_app_data = WebAppData(**web_app_data) if web_app_data else None
         self.reply_markup = reply_markup if reply_markup else None
 
