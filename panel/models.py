@@ -6,9 +6,6 @@ from panel.assist import generate_uid
 class Games(models.Model):
     name = models.CharField(max_length=100)
 
-from django.db import models
-
-
 class Profile(models.Model):
   enter_name = models.CharField(max_length=255, blank=True, null=True)
   enter_id = models.CharField(max_length=255, blank=True, null=True)
