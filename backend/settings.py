@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-v9j8oc^yoeyv+=-7pitzul*=d#=busnu$0^k@t!ypn*us83#&j
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = ["mybotadmin.site"]
 
 # Application definition
 
@@ -116,7 +116,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
+# STATIC_ROOT = "/home/mybotadm/public_html/static"
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
