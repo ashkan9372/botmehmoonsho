@@ -66,6 +66,9 @@ def WinningView(request):
 def SettingsView(request):
     return render(request, 'Settings.html')
 
+def LoginView(request):
+    return render(request, 'Login.html')
+
 
 def get_users(request):
     if request.method == 'GET':

@@ -30,6 +30,7 @@ urlpatterns = [
     path('Messages/', MessagesView, name='Messages'),
     path('Winning/', WinningView, name='Winning'),
     path('Settings/', SettingsView, name='Settings'),
+    path('Login/', LoginView, name='Login'),
 ]
 
 if settings.DEBUG:
