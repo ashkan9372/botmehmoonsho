@@ -11,6 +11,7 @@ import re
 from panel.assist import *
 from panel.views import convert_date as cnv_date
 from django.utils import timezone
+from django.db.models import Exists, Count
 
 conf = configs(appname='panel')
 bot = Monogram(**conf)
@@ -48,7 +49,8 @@ def start(message):
         login_code = message.text.split()[1].strip() if len(message.text.split()) > 1 else None
         username = message.chat.username
         user_id = message.chat.id
-        user_info = Profile.objects.create(full_name=full_name, username=username, user_id=user_id, picture=filename, login_code=login_code)
+        status = 'Registering'
+        user_info = Profile.objects.create(full_name=full_name, username=username, user_id=user_id, picture=filename, login_code=login_code, status=status)
 
         welcome_message = f"""سلام رفیق گل! ‍♀️‍♂️به {Bold('ربات مهمونشو')} خوش اومدی! اینجا یه جای باحالِ پر از آدمای باحالِ خوش‌گذرانِ دوست‌داشتنیه! هر هفته یه {Bold('قرعه‌کشی خفن')} داریم که برنده‌ها باید با جایزه‌شون دوستاشون رو مهمون کنن! فقط کافیه یه {Bold('کد معرفی')} از یکی از اعضای ربات بگیری و عضو شی تا تو هم تو این جمع باحال باشی! {Bold('منتظرتیم!')}"""
         message.answer(welcome_message)
@@ -68,7 +70,10 @@ def start(message):
 @bot.newMessage(pattern='📢 مشاهده کانال')
 def visit_channel(message):
     # impelement is joined
-    keyboard = [[InlineKeyboardButton("🔗 کانال", f"https://t.me/c/2000514189/999999999")]]
+    setting = Setting.objects.get(id=1)
+    channel = setting.channel.replace('@', '')
+    url = 'https://t.me/' + channel
+    keyboard = [[InlineKeyboardButton("🔗 کانال", url)]]
     keyboard = InlineKeyboardMarkup(keyboard)
     message.answer("🔹 برای دیدن کانال ما از دکمه زیر استفاده کن.", keyboard=keyboard)
 
@@ -165,7 +170,6 @@ def bot_support(message):
         conv = Conversation(message.chat.id)
         conv.create('support')
 
-
 @bot.newMessage(pattern='🎟 قرعه‌کشی')
 def lottery(message):
     setting = Setting.objects.get(id=1)
@@ -251,15 +255,31 @@ def lottery(message):
 @bot.newMessage(pattern='📚 اطلاعات قرعه کشی')
 def lottery_info(message):
     setting = Setting.objects.get(id=1)
-    start_time = cnv_date(setting.start_time)
-    end_time = cnv_date(setting.end_time)
-    lottery_time = cnv_date(setting.lottery_time)
-    # text = "ثبت نام در قرعه کشیهر هفتهاز روز ( روزی که تعیین کردم در پنل )ساعت ( ساعتی که تعیین کردم در پنل) شروع میشه وروز (روزی که تعیین کردم در پنل)ساعت (ساعتی که تعیین کردم در پنل) تمام میشه و زمان قرعه کشیو اعالم برنده ها( روز و ساعتی که در پنل برایقرعه کشی )می باشد"
-    text = f"ثبت نام در قرعه کشی هر هفته از روز {start_time} شروع میشه وروز {end_time} تمام میشه و زمان قرعه کشی اعلام برنده ها{lottery_time}می باشد"
+    days_of_week = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
+    def conver_to_shamsi(date):
+        shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
+        time_zone = jdatetime.timedelta(hours=3, minutes=30)
+        shamsi_date = shamsi_date + time_zone
+        return shamsi_date
+    shamsi_start_time = conver_to_shamsi(setting.start_time)
+    start_time = {
+        'day': days_of_week[shamsi_start_time.weekday()],
+        'time': shamsi_start_time.strftime('%H:%M')
+    }
+    shamsi_end_time = conver_to_shamsi(setting.end_time)
+    end_time = {
+        'day': days_of_week[shamsi_end_time.weekday()],
+        'time': shamsi_end_time.strftime('%H:%M')
+    }
+    shamsi_lottery_time = conver_to_shamsi(setting.lottery_time)
+    lottery_time = {
+        'day': days_of_week[shamsi_lottery_time.weekday()],
+        'time': shamsi_lottery_time.strftime('%H:%M')
+    }
+    text = f"ثبت نام در قرعه کشی هر هفته از روز {Bold(start_time['day'])} ساعت {Bold(start_time['time'])} شروع میشه وروز {Bold(end_time['day'])} ساعت {Bold(end_time['time'])} تمام میشه و زمان قرعه کشیو اعالم برنده هاروز {Bold(lottery_time['day'])} ساعت {Bold(lottery_time['time'])} می باشد"
+    # text = f"ثبت نام در قرعه کشی هر هفته از روز {start_time} شروع میشه وروز {end_time} تمام میشه و زمان قرعه کشی اعلام برنده ها{lottery_time}می باشد"
     message.answer(text)
 
-
-from django.db.models import Count
 @bot.newMessage(pattern='📊 آمار و ارقام')
 def info(message):
     text = ''
@@ -289,7 +309,6 @@ def info(message):
     total_profiles = Profile.objects.count()
     text += '\n' + Bold('🤖 تعداد اعضای ربات') +': '+ str(total_profiles)
     message.answer(text)
-
 
 def callback_query(query):
     chat_id = query.message.chat.id
@@ -591,7 +610,6 @@ def filter_message(message):
     print(f"Error accessing message attributes: {e}")
     return False
 
-from django.db.models import Exists
 
 def any(message):
     # sendPhoto(message.chat.id, photo=InputFile('Screenshot (7).png'), caption='this is a test to sending photo.')
@@ -635,6 +653,7 @@ def any(message):
             if text_status:
                 profile = Profile.objects.get(user_id=message.chat.id)
                 profile.enter_id = message.text.lower()
+                profile.status = 'Registered'
                 profile.save()
                 conv.cancel()
                 text = '✅ اطلاعاتت با موفقیت تکمیل شد!'
