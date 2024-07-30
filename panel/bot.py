@@ -190,7 +190,6 @@ def lottery(message):
                     'status': 'Registering'
                 }
             )
-            print('created: ', created)
             if not created:
                 if lottery.status == "Unregistered":
                     lottery = Lottery(profile=profile, register_date=timezone.now(), status='Registering')
@@ -216,10 +215,13 @@ def lottery(message):
                     except Games.DoesNotExist:
                         text = 'هیچ فعالیت یافت نشد!احتمالا ادمین هیچ فعالیت اضافه نکرده برای اطلاعات بیشتر با پشتیبانی تماس بگیرین.'
                         message.answer(text)
-                elif lottery.status == "Registered":
+                elif lottery.status == "Registered" and lottery.payment_status == 'PENDING':
+                    text = 'شما قبلا ثبت نام کرده اید, منتظر تایید ادمین باشید.'
+                    message.answer(text)
+                elif lottery.status == "Registered" and lottery.payment_status == 'PAID':
                     path_file = lottery.ticket_picture.url[1:]
                     lottery_time = cnv_date(lottery_time)
-                    text = 'شما قبلا ثبت نام کرده اید'
+                    text = 'شما قبلا ثبت نام کرده اید, منتظر تایید ادمین باشید.'
                     text = text + '\n' + f'زمان قرعه کشی:{lottery_time}'
                     sendPhoto(chat_id=message.chat.id, photo=InputFile(path_file), caption=text)
             if created or lottery.status == "Registering":
@@ -521,6 +523,7 @@ def callback_query(query):
             for inner_list in keyboard:
                 for item in inner_list:
                     if item['text'] == 'بازگشت':
+                        print('bck removed')
                         keyboard.remove(inner_list)
                     elif item['text'] == '💳 رفتن به مرحله پرداخت':
                         keyboard.remove(inner_list)
@@ -613,7 +616,7 @@ def callback_query(query):
             ],
             [
                 InlineKeyboardButton("بازگشت",
-                                     callback_data=f"selectedFriend-{friend_id}-{lottery_id}-{friend_name}"),
+                                     callback_data=f"selectFriend-{friend_id}-{lottery_id}-{friend_name}"),
             ]
         ]
 
