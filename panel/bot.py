@@ -616,7 +616,7 @@ def callback_query(query):
             ],
             [
                 InlineKeyboardButton("بازگشت",
-                                     callback_data=f"selectFriend-{friend_id}-{lottery_id}-{friend_name}"),
+                                     callback_data=f"selectFriend-{lottery_id}"),
             ]
         ]
 
