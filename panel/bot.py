@@ -11,9 +11,8 @@ import re
 from panel.assist import *
 from panel.views import convert_date as cnv_date
 from django.utils import timezone
-from django.db.models import Exists, Count
+from django.db.models import Exists, Count, Q
 from django.db import IntegrityError
-
 conf = configs(appname='panel')
 bot = Monogram(**conf)
 
@@ -381,55 +380,81 @@ def callback_query(query):
         username = data[2]
         try:
             profile = Profile.objects.get(user_id=friend_id)
-            try:
-                # Find friend profile by enter_id
-                friend_profile = Profile.objects.get(user_id=chat_id)
-                # Add friend to user's friend list
+            friend_profile = Profile.objects.get(user_id=chat_id)
+
+            # Update all pending friendship requests between the two users
+            friendships = profileFriend.objects.filter(
+                Q(from_user=profile, to_user=friend_profile) | Q(from_user=friend_profile, to_user=profile),
+                status='Pending'
+            )
+            for friendship in friendships:
+                friendship.status = 'Accepted'
+                friendship.save()
+
+            # Add friends to each other's lists (if not already added)
+            if friend_profile not in profile.friends.all():
                 profile.friends.add(friend_profile)
-                profile.save()  # Save changes explicitly (optional for Django < 2.0)
-                # Add user to friend's friend list for symmetry
-                friend_profile.friends.add(profile)
-                friend_profile.save()  # Optional for symmetry
-
-                friendship = profileFriend.objects.get(from_user=profile, to_user=friend_profile, status='Pending')
-                friendship.status = 'Accepted'
-                friendship.save()
-                friendship = profileFriend.objects.get(from_user=friend_profile, to_user=profile, status='Pending')
-                friendship.status = 'Accepted'
+            if profile not in friend_profile.friends.all():
+                # friend_profile.friends.add(profile)
+                friendship = profileFriend(from_user=friend_profile, to_user=profile, status='Accepted')
                 friendship.save()
 
-                text = 'درخواست کاربر موردنظر باموفقیت تایید شد.'
-                # sendMessage(chat_id=chat_id, text=text)
-                editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
-                text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
-                sendMessage(chat_id=friend_id, text=text)
-                conv = Conversation(friend_id)
-                conv.cancel()
-            except Profile.DoesNotExist:
-                pass
+            text = 'درخواست کاربر موردنظر باموفقیت تایید شد.'
+            editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
+            text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
+            sendMessage(chat_id=friend_id, text=text)
+            conv = Conversation(friend_id)
+            conv.cancel()
         except Profile.DoesNotExist:
             pass
+
+        # try:
+        #     profile = Profile.objects.get(user_id=friend_id)
+        #     try:
+        #         # Find friend profile by enter_id
+        #         friend_profile = Profile.objects.get(user_id=chat_id)
+        #         # Add friend to user's friend list
+        #         profile.friends.add(friend_profile)
+        #         profile.save()  # Save changes
+        #         # Add user to friend's friend list for symmetry
+        #         friend_profile.friends.add(profile)
+        #         friend_profile.save()  # Optional for symmetry
+        #
+        #         friendship = profileFriend.objects.get(from_user=profile, to_user=friend_profile, status='Pending')
+        #         friendship.status = 'Accepted'
+        #         friendship.save()
+        #         friendship = profileFriend.objects.get(from_user=friend_profile, to_user=profile, status='Pending')
+        #         friendship.status = 'Accepted'
+        #         friendship.save()
+        #
+        #         text = 'درخواست کاربر موردنظر باموفقیت تایید شد.'
+        #         # sendMessage(chat_id=chat_id, text=text)
+        #         editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
+        #         text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
+        #         sendMessage(chat_id=friend_id, text=text)
+        #         conv = Conversation(friend_id)
+        #         conv.cancel()
+        #     except Profile.DoesNotExist:
+        #         pass
+        # except Profile.DoesNotExist:
+        #     pass
 
     if 'cancelFriend' in query.data:
         data = query.data.split('-')
         friend_id = data[1]
         username = data[2]
         try:
-
             profile = Profile.objects.get(user_id=friend_id)
             friend_profile = Profile.objects.get(user_id=chat_id)
-            print(friend_id, chat_id)
-            friendship = profileFriend.objects.get(from_user=profile, to_user=friend_profile, status='Pending')
-            # friendship.status = 'Rejected'
-            # friendship.save()
-            friendship.delete()
 
-            friendship = profileFriend.objects.get(from_user=friend_profile, to_user=profile, status='Pending')
-            # friendship.status = 'Rejected'
-            # friendship.save()
-            friendship.delete()
+            # Update all pending friendship requests between the two users
+            friendships = profileFriend.objects.filter(
+                Q(from_user=profile, to_user=friend_profile) | Q(from_user=friend_profile, to_user=profile),
+                status='Pending'
+            )
+            for friendship in friendships:
+                friendship.delete()
 
-            friend_profile = Profile.objects.get(user_id=chat_id)
             text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
             # sendMessage(chat_id=chat_id, text=text)
             editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
@@ -439,6 +464,31 @@ def callback_query(query):
             conv.cancel()
         except Profile.DoesNotExist:
             pass
+        # try:
+        #
+        #     profile = Profile.objects.get(user_id=friend_id)
+        #     friend_profile = Profile.objects.get(user_id=chat_id)
+        #     print(friend_id, chat_id)
+        #     friendship = profileFriend.objects.get(from_user=profile, to_user=friend_profile, status='Pending')
+        #     # friendship.status = 'Rejected'
+        #     # friendship.save()
+        #     friendship.delete()
+        #
+        #     friendship = profileFriend.objects.get(from_user=friend_profile, to_user=profile, status='Pending')
+        #     # friendship.status = 'Rejected'
+        #     # friendship.save()
+        #     friendship.delete()
+        #
+        #     friend_profile = Profile.objects.get(user_id=chat_id)
+        #     text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
+        #     # sendMessage(chat_id=chat_id, text=text)
+        #     editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
+        #     text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا رد کرد'
+        #     sendMessage(chat_id=friend_id, text=text)
+        #     conv = Conversation(friend_id)
+        #     conv.cancel()
+        # except Profile.DoesNotExist:
+        #     pass
 
     if 'editProfileFullname' in query.data:
         conv = Conversation(chat_id)
@@ -655,7 +705,7 @@ def any(message):
             if text_status:
                 try:
                     profile = Profile.objects.get(user_id=message.chat.id)
-                    profile.enter_id = message.text
+                    profile.enter_id = message.text.lower()
                     profile.status = 'Registered'
                     profile.save()
                     conv.cancel()
@@ -680,78 +730,50 @@ def any(message):
         if data['callback_data'] == 'addfriend':
             try:
                 profile = Profile.objects.get(user_id=message.chat.id)
-                try:
-                    # Find friend profile by enter_id
-                    friend_profile = Profile.objects.get(enter_id=message.text)
-                    try:
-                        friendship = profileFriend.objects.get(from_user=profile, to_user=friend_profile)
-
-                        if friendship.status == 'Pending':
-                            text = 'شما قبلا برای این کاربر درخواست دوستی فرستادین!\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
-                            keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
-                            keyboard = InlineKeyboardMarkup(keyboard)
-                            message.reply(text=text, keyboard=keyboard)
-                        if friendship.status == 'Accepted':
-                            text = 'در حال حاظر این کاربر در لیست دوستان شما قرار دارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
-                            keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
-                            keyboard = InlineKeyboardMarkup(keyboard)
-                            message.reply(text=text, keyboard=keyboard)
-                        if friendship:
-                            friendship = profileFriend(from_user=profile, to_user=friend_profile, status='Pending')
-                            friendship.save()
-
-                            friendship = profileFriend(from_user=friend_profile, to_user=profile, status='Pending')
-                            friendship.save()
-                            # Check if friend is already in user's friend list
-                            if friend_profile not in profile.friends.all():
-                                text = f"کاربری با نام {profile.enter_name} و نام کاربری {profile.enter_id} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
-                                keyboard = [
-                                    [
-                                        InlineKeyboardButton("✅ تایید",
-                                                             callback_data=f"acceptFriend-{message.chat.id}-{message.text}"),
-                                        InlineKeyboardButton("❌ رد",
-                                                             callback_data=f"cancelFriend-{message.chat.id}-{message.text}"),
-                                    ]
-                                ]
-                                keyboard = InlineKeyboardMarkup(keyboard)
-                                print(text)
-                                sendMessage(chat_id=friend_profile.user_id, text=text, reply_markup=keyboard)
-                                text = 'درخواست دوستی شما برای کاربر مورد نظر ارسال شد پس از تایید, به لیست دوستات اضافه میشه.\nبرای اضافه کردن دوستان بیشتر از دکمه بازگشت استاده کنید.'
-                                keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
-                                keyboard = InlineKeyboardMarkup(keyboard)
-                                message.reply(text=text, keyboard=keyboard)
-                                # message.answer(chat_id=message.chat.id, text=text, keyboard=keyboard)
-
-                    except profileFriend.DoesNotExist:
-                        friendship = profileFriend(from_user=profile, to_user=friend_profile, status='Pending')
-                        friendship.save()
-
-                        friendship = profileFriend(from_user=friend_profile, to_user=profile, status='Pending')
-                        friendship.save()
-                        text = f"کاربری با نام {profile.enter_name} و نام کاربری {profile.enter_id} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
-                        keyboard = [
-                            [
-                                InlineKeyboardButton("✅ تایید", callback_data=f"acceptFriend-{message.chat.id}-{message.text}"),
-                                InlineKeyboardButton("❌ رد", callback_data=f"cancelFriend-{message.chat.id}-{message.text}"),
-                            ]
+                friend_profile = Profile.objects.get(enter_id=message.text)
+                # Check if a friendship already exists between these two users
+                friendship, created = profileFriend.objects.get_or_create(
+                    from_user=profile,
+                    to_user=friend_profile,
+                    defaults={"status": 'Pending'},
+                )
+                # if created send request to user
+                if created:
+                    # Check if friend is already in user's friend list
+                    text = f"کاربری با نام {profile.enter_name} و نام کاربری {profile.enter_id} برای شما درخواست دوستی فرستاده.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                    keyboard = [
+                        [
+                            InlineKeyboardButton("✅ تایید",
+                                                 callback_data=f"acceptFriend-{message.chat.id}-{message.text}"),
+                            InlineKeyboardButton("❌ رد",
+                                                 callback_data=f"cancelFriend-{message.chat.id}-{message.text}"),
                         ]
-                        keyboard = InlineKeyboardMarkup(keyboard)
-                        print(text)
-                        sendMessage(chat_id=friend_profile.user_id, text=text, reply_markup=keyboard)
-                        text = 'درخواست دوستی شما برای کاربر مورد نظر ارسال شد پس از تایید, به لیست دوستات اضافه میشه.\nبرای اضافه کردن دوستان بیشتر از دکمه بازگشت استاده کنید.'
-                        keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
-                        keyboard = InlineKeyboardMarkup(keyboard)
-                        message.reply(text=text, keyboard=keyboard)
-                        # message.answer(chat_id=message.chat.id, text=text, keyboard=keyboard)
-
-                except Profile.DoesNotExist:
-                    text = 'هیچ کاربری با این نام کاربری در سیستم وجود ندارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
+                    ]
+                    keyboard = InlineKeyboardMarkup(keyboard)
+                    sendMessage(chat_id=friend_profile.user_id, text=text, reply_markup=keyboard)
+                    text = 'درخواست دوستی شما برای کاربر مورد نظر ارسال شد پس از تایید, به لیست دوستات اضافه میشه.\nبرای اضافه کردن دوستان بیشتر از دکمه بازگشت استاده کنید.'
                     keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
                     keyboard = InlineKeyboardMarkup(keyboard)
                     message.reply(text=text, keyboard=keyboard)
-                    # message.answer(chat_id=message.chat.id, text=text, keyboard=keyboard)
+                # If the friendship already exists, update the status
+                if not created:
+                    if friendship.status == 'Pending':
+                        text = 'شما قبلا برای این کاربر درخواست دوستی فرستادین!\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
+                        keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
+                        keyboard = InlineKeyboardMarkup(keyboard)
+                        message.reply(text=text, keyboard=keyboard)
+                    if friendship.status == 'Accepted':
+                        text = 'در حال حاظر این کاربر در لیست دوستان شما قرار دارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
+                        keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
+                        keyboard = InlineKeyboardMarkup(keyboard)
+                        message.reply(text=text, keyboard=keyboard)
+
             except Profile.DoesNotExist:
-                pass
+                text = 'هیچ کاربری با این نام کاربری در سیستم وجود ندارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
+                keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
+                keyboard = InlineKeyboardMarkup(keyboard)
+                message.reply(text=text, keyboard=keyboard)
+
         if data['callback_data'] == 'editProfileFullname':
             try:
                 if is_persian_name(message.text):
@@ -761,25 +783,27 @@ def any(message):
                     conv.cancel()
                     text = 'نام و نام خانوادگی شما با موفقیت ویرایش شد.'
                     message.answer(text)
-
+                else:
+                    message.answer(f"خطا! لطفا نام و نام خانوادگی خود را با {Bold('حروف فارسی')} وارد کنید")
             except Profile.DoesNotExist:
                 pass
         if data['callback_data'] == 'editProfileUsername':
-            try:
-                text_status, msg = is_valid_username(message.text)
-                if text_status:
+            text_status, msg = is_valid_username(message.text)
+            if text_status:
+                try:
                     profile = Profile.objects.get(user_id=message.chat.id)
-                    profile.enter_id = message.text
+                    profile.enter_id = message.text.lower()
                     profile.save()
                     conv.cancel()
                     text = 'نام کاربری شما با موفقیت ویرایش شد.'
                     message.answer(text)
-
-            except IntegrityError:
-                text = 'نام کاربری وارد شده در سیستم وجود دارد. یک نام کاربری دیگر را تست کنید.'
-                message.answer(text)
-            except Profile.DoesNotExist:
-                pass
+                except IntegrityError:
+                    text = 'نام کاربری وارد شده در سیستم وجود دارد. یک نام کاربری دیگر را تست کنید.'
+                    message.answer(text)
+                except Profile.DoesNotExist:
+                    pass
+            else:
+                message.answer(msg)
         if data['callback_data'] == 'support':
             if message.photo or message.text:
                 try:
@@ -802,7 +826,6 @@ def any(message):
             else:
                 text = 'خطا! پیام ارسالی شما باید متن یا عکس کپشن دار باشد.'
                 message.answer(text)
-
         if data['callback_data'] == 'paid':
             try:
                 profile = Profile.objects.get(user_id=message.chat.id)
