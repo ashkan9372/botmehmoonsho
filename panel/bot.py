@@ -524,6 +524,8 @@ def callback_query(query):
                         keyboard.remove(inner_list)
                     elif item['text'] == '💳 رفتن به مرحله پرداخت':
                         keyboard.remove(inner_list)
+                    elif item['text'] == '📑 ارسال فیش پرداخت':
+                        keyboard.remove(inner_list)
                     elif item["callback_data"] == query.data:
                         if "✅" not in item["text"]:
                             # text = f"✅ {item['text']}"
@@ -607,7 +609,7 @@ def callback_query(query):
         text += "\n" + f"{card_number}" + "\n" + f"{card_name}"
         keyboard = [
             [
-                InlineKeyboardButton("📑 ارسال فیش پرداخت", callback_data="paid"),
+                InlineKeyboardButton("📑 ارسال فیش پرداخت", callback_data=f"paid-{lottery_id}"),
             ],
             [
                 InlineKeyboardButton("بازگشت",
@@ -619,8 +621,13 @@ def callback_query(query):
         editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
         
     if 'paid' in query.data:
+        data = query.data.split('-')
+        lottery_id = data[1]
         conv = Conversation(chat_id)
         conv.create('paid')
+        lottery = Lottery.objects.get(id=lottery_id, status='Registering')
+        lottery.status='Registered'
+        lottery.save()
         text = 'لطفا عکس فیش واریزی خود را ارسال کنید:'
         query.message.answer(text)
 
@@ -642,9 +649,6 @@ def filter_message(message):
     return False
 
 def any(message):
-    # sendPhoto(message.chat.id, photo=InputFile('Screenshot (7).png'), caption='this is a test to sending photo.')
-    # print(message)
-    # print(message.photo != None)
     # Perform conversation tasks
     conv = Conversation(message.chat.id)
     data = conv.data()
@@ -707,7 +711,7 @@ def any(message):
         if data['callback_data'] == 'addfriend':
             try:
                 profile = Profile.objects.get(user_id=message.chat.id)
-                friend_profile = Profile.objects.get(enter_id=message.text)
+                friend_profile = Profile.objects.get(enter_id=message.text.lower())
                 # Check if a friendship already exists between these two users
                 friendship, created = profileFriend.objects.get_or_create(
                     from_user=profile,
@@ -721,9 +725,9 @@ def any(message):
                     keyboard = [
                         [
                             InlineKeyboardButton("✅ تایید",
-                                                 callback_data=f"acceptFriend-{message.chat.id}-{message.text}"),
+                                                 callback_data=f"acceptFriend-{message.chat.id}-{message.text.lower()}"),
                             InlineKeyboardButton("❌ رد",
-                                                 callback_data=f"cancelFriend-{message.chat.id}-{message.text}"),
+                                                 callback_data=f"cancelFriend-{message.chat.id}-{message.text.lower()}"),
                         ]
                     ]
                     keyboard = InlineKeyboardMarkup(keyboard)
