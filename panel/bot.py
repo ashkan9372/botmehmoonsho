@@ -182,12 +182,16 @@ def lottery(message):
         try:
             # Get the profile by ID
             profile = Profile.objects.get(user_id=message.chat.id)
-            friends = profile.friends.all()
-            friends = list(friends.values())
 
-            lottery = Lottery.objects.filter(profile=profile)
-            if lottery.exists():
-                lottery = lottery.last()
+            lottery, created = Lottery.objects.get_or_create(
+                profile=profile,
+                defaults={
+                    'register_date': timezone.now(),
+                    'status': 'Registering'
+                }
+            )
+            print('created: ', created)
+            if not created:
                 if lottery.status == "Unregistered":
                     lottery = Lottery(profile=profile, register_date=timezone.now(), status='Registering')
                     lottery.save()
@@ -212,20 +216,13 @@ def lottery(message):
                     except Games.DoesNotExist:
                         text = 'هیچ فعالیت یافت نشد!احتمالا ادمین هیچ فعالیت اضافه نکرده برای اطلاعات بیشتر با پشتیبانی تماس بگیرین.'
                         message.answer(text)
-
                 elif lottery.status == "Registered":
                     path_file = lottery.ticket_picture.url[1:]
                     lottery_time = cnv_date(lottery_time)
                     text = 'شما قبلا ثبت نام کرده اید'
                     text = text + '\n' + f'زمان قرعه کشی:{lottery_time}'
                     sendPhoto(chat_id=message.chat.id, photo=InputFile(path_file), caption=text)
-                else:
-                    message.answer('شما هنوز ثبت نام خود را تکمیل نکرده اید.')
-            else:
-
-                lottery = Lottery(profile=profile, register_date=timezone.now(), status='Registering')
-                lottery.save()
-
+            if created or lottery.status == "Registering":
                 try:
                     friendList = INIsection(Bold('دوستان انتخاب شده'), [])
                     game_name = INIsection(Bold('فعالیت انتخاب شده'), ' ')
@@ -245,10 +242,8 @@ def lottery(message):
                 except Games.DoesNotExist:
                     text = 'هیچ فعالیت یافت نشد!احتمالا ادمین هیچ فعالیت اضافه نکرده برای اطلاعات بیشتر با پشتیبانی تماس بگیرین.'
                     message.answer(text)
-
         except Profile.DoesNotExist:
             pass
-
     else:
         message.answer(msg)
 
@@ -313,7 +308,6 @@ def info(message):
 def callback_query(query):
     chat_id = query.message.chat.id
     message_id = query.message.message_id
-    print(chat_id, message_id, query.data, query.data == 'listfriend')
     if query.data == 'listfriend':
         try:
             # Get the profile by ID
@@ -456,7 +450,6 @@ def callback_query(query):
                 friendship.delete()
 
             text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
-            # sendMessage(chat_id=chat_id, text=text)
             editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
             text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا رد کرد'
             sendMessage(chat_id=friend_id, text=text)
@@ -464,31 +457,6 @@ def callback_query(query):
             conv.cancel()
         except Profile.DoesNotExist:
             pass
-        # try:
-        #
-        #     profile = Profile.objects.get(user_id=friend_id)
-        #     friend_profile = Profile.objects.get(user_id=chat_id)
-        #     print(friend_id, chat_id)
-        #     friendship = profileFriend.objects.get(from_user=profile, to_user=friend_profile, status='Pending')
-        #     # friendship.status = 'Rejected'
-        #     # friendship.save()
-        #     friendship.delete()
-        #
-        #     friendship = profileFriend.objects.get(from_user=friend_profile, to_user=profile, status='Pending')
-        #     # friendship.status = 'Rejected'
-        #     # friendship.save()
-        #     friendship.delete()
-        #
-        #     friend_profile = Profile.objects.get(user_id=chat_id)
-        #     text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
-        #     # sendMessage(chat_id=chat_id, text=text)
-        #     editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
-        #     text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا رد کرد'
-        #     sendMessage(chat_id=friend_id, text=text)
-        #     conv = Conversation(friend_id)
-        #     conv.cancel()
-        # except Profile.DoesNotExist:
-        #     pass
 
     if 'editProfileFullname' in query.data:
         conv = Conversation(chat_id)
@@ -517,6 +485,11 @@ def callback_query(query):
                     InlineKeyboardButton(f"❌ {friend_name}",
                                          callback_data=f"selectedFriend-{friend_id}-{lottery.id}-{friend_name}"),
                 ])
+
+            keyboard.append([
+                InlineKeyboardButton("بازگشت",
+                                     callback_data=f"selectedGame-{lottery.id}-{lottery.game.id}-{lottery.game.name}"),
+            ])
             game_name = lottery.game.name
             friendList = INIsection(Bold('دوستان انتخاب شده'), [])
             game_name = INIsection(Bold('فعالیت انتخاب شده'), game_name)
@@ -541,19 +514,17 @@ def callback_query(query):
         friend_id = data[1]
         lottery_id = data[2]
         friend_name = data[3]
-        print(friend_id, lottery_id, friend_name)
         try:
             lottery = Lottery.objects.get(id=lottery_id)
             profile = Profile.objects.get(id=friend_id)
             keyboard = query.message.reply_markup['inline_keyboard']
             for inner_list in keyboard:
                 for item in inner_list:
-                    if item['text'] == '💳 رفتن به مرحله پرداخت':
-                        print('selectGame:')
+                    if item['text'] == 'بازگشت':
                         keyboard.remove(inner_list)
-                        print(inner_list)
-                        print(item)
-                    if item["callback_data"] == query.data:
+                    elif item['text'] == '💳 رفتن به مرحله پرداخت':
+                        keyboard.remove(inner_list)
+                    elif item["callback_data"] == query.data:
                         if "✅" not in item["text"]:
                             # text = f"✅ {item['text']}"
                             text = item["text"].replace("❌ ", "✅ ")
@@ -568,9 +539,13 @@ def callback_query(query):
                 name = friend.enter_name
                 friendList.append(name)
             if len(friendList):
-                payment = InlineKeyboardButton('💳 رفتن به مرحله پرداخت', callback_data=f"payment")
+                payment = InlineKeyboardButton('💳 رفتن به مرحله پرداخت', callback_data=f"payment-{friend_id}-{lottery_id}-{friend_name}")
                 if [payment] not in keyboard:
                     keyboard.append([payment])
+            keyboard.append([
+                InlineKeyboardButton("بازگشت",
+                                     callback_data=f"selectedGame-{lottery.id}-{lottery.game.id}-{lottery.game.name}"),
+            ])
             keyboard = InlineKeyboardMarkup(keyboard)
             friendList = INIsection(Bold('دوستان انتخاب شده'), friendList)
             game_name = lottery.game.name
@@ -580,14 +555,14 @@ def callback_query(query):
             editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
 
         except Lottery.DoesNotExist:
-            print('lottery does not exist.')
+            # print('lottery does not exist.')
+            pass
 
     if 'selectedGame' in query.data:
         data = query.data.split('-')
         lottery_id = data[1]
         game_id = data[2]
         game_name = data[3]
-
         try:
             games = Games.objects.all()
             keyboard = []
@@ -602,18 +577,10 @@ def callback_query(query):
                 keyboard.append([
                         InlineKeyboardButton('رفتن به انتخاب دوستان', callback_data=f"selectFriend-{lottery_id}")
                 ])
-
             keyboard = InlineKeyboardMarkup(keyboard)
-
-            # friendList = []
-            lottery = Lottery.objects.filter(id=lottery_id).last()
-            # profile = Profile.objects.get(id=friend_id)
-            # lottery.friends.add(profile)
-            # friends = lottery.friends.all()
+            lottery = Lottery.objects.get(id=lottery_id)
             lottery.game = Games.objects.get(id=game_id)
             lottery.save()
-            # for friend in friends:
-            #     friendList.append(friend.enter_name)
             friendList = INIsection(Bold('دوستان انتخاب شده'), [])
             game_name = '' if '✅' in game_name else game_name
             game_name = INIsection(Bold('فعالیت انتخاب شده'), game_name)
@@ -623,9 +590,14 @@ def callback_query(query):
 
         except Games.DoesNotExist:
             text = 'هیچ فعالیت یافت نشد!احتمالا ادمین هیچ فعالیت اضافه نکرده برای اطلاعات بیشتر با پشتیبانی تماس بگیرین.'
-            message.answer(text)
+            query.message.answer(text)
 
     if 'payment' in query.data:
+        data = query.data.split('-')
+        friend_id = data[1]
+        lottery_id = data[2]
+        friend_name = data[3]
+
         setting = Setting.objects.get(id=1)
         card_number = Bold(setting.card_number)
         card_name = Bold(setting.card_name)
@@ -637,7 +609,12 @@ def callback_query(query):
             [
                 InlineKeyboardButton("📑 ارسال فیش پرداخت", callback_data="paid"),
             ],
+            [
+                InlineKeyboardButton("بازگشت",
+                                     callback_data=f"selectedFriend-{friend_id}-{lottery_id}-{friend_name}"),
+            ]
         ]
+
         keyboard = InlineKeyboardMarkup(keyboard)
         editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
         
