@@ -20,6 +20,16 @@ bot = Monogram(**conf)
 
 back_markup = ReplyKeyboardMarkup([[KeyboardButton('🔙 بازگشت')]], resize_keyboard=True)
 
+main_keyboard = [
+    [KeyboardButton('🎟 قرعه‌کشی')],
+    [KeyboardButton('📚 اطلاعات قرعه کشی'), KeyboardButton('📤 ارسال کد معرف'), KeyboardButton('📢 مشاهده کانال'), ],
+    [KeyboardButton('👤 ویرایش اطلاعات'), KeyboardButton('👥 لیست دوستان'), ],
+    [
+        KeyboardButton('☎ پشتیبانی'),
+        KeyboardButton('📊 آمار و ارقام'),
+        KeyboardButton('🤖 آموزش ربات'),
+    ],
+]
 
 @bot.newMessage(pattern=r'^/start')
 def start(message):
@@ -37,7 +47,8 @@ def start(message):
         # print(filename)
     try:
         user_info = Profile.objects.get(user_id=message.chat.id)
-        message.answer('سلام دوباره! خیلی خوشحالیم که به جمع ما برگشتی.')
+        keyboard = InlineKeyboardMarkup(main_keyboard)
+        message.answer('سلام دوباره! خیلی خوشحالیم که به جمع ما برگشتی.', keyboard=keyboard)
     except Profile.DoesNotExist:
 
         first_name = message.chat.first_name
@@ -403,38 +414,6 @@ def callback_query(query):
             conv.cancel()
         except Profile.DoesNotExist:
             pass
-
-        # try:
-        #     profile = Profile.objects.get(user_id=friend_id)
-        #     try:
-        #         # Find friend profile by enter_id
-        #         friend_profile = Profile.objects.get(user_id=chat_id)
-        #         # Add friend to user's friend list
-        #         profile.friends.add(friend_profile)
-        #         profile.save()  # Save changes
-        #         # Add user to friend's friend list for symmetry
-        #         friend_profile.friends.add(profile)
-        #         friend_profile.save()  # Optional for symmetry
-        #
-        #         friendship = profileFriend.objects.get(from_user=profile, to_user=friend_profile, status='Pending')
-        #         friendship.status = 'Accepted'
-        #         friendship.save()
-        #         friendship = profileFriend.objects.get(from_user=friend_profile, to_user=profile, status='Pending')
-        #         friendship.status = 'Accepted'
-        #         friendship.save()
-        #
-        #         text = 'درخواست کاربر موردنظر باموفقیت تایید شد.'
-        #         # sendMessage(chat_id=chat_id, text=text)
-        #         editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
-        #         text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
-        #         sendMessage(chat_id=friend_id, text=text)
-        #         conv = Conversation(friend_id)
-        #         conv.cancel()
-        #     except Profile.DoesNotExist:
-        #         pass
-        # except Profile.DoesNotExist:
-        #     pass
-
     if 'cancelFriend' in query.data:
         data = query.data.split('-')
         friend_id = data[1]
@@ -475,7 +454,6 @@ def callback_query(query):
     if 'selectFriend' in query.data:
         data = query.data.split('-')
         lottery_id = data[1]
-
         lottery = Lottery.objects.get(id=lottery_id)
         friends = lottery.profile.friends.all()
         keyboard = []
@@ -516,10 +494,14 @@ def callback_query(query):
         friend_id = data[1]
         lottery_id = data[2]
         friend_name = data[3]
+        print(query.data)
         try:
             lottery = Lottery.objects.get(id=lottery_id)
             profile = Profile.objects.get(id=friend_id)
+
             keyboard = query.message.reply_markup['inline_keyboard']
+            for k in keyboard:
+                print(k)
             for inner_list in keyboard:
                 for item in inner_list:
                     if item['text'] == 'بازگشت':
@@ -538,7 +520,6 @@ def callback_query(query):
                             text = item["text"].replace("✅ ", "❌ ")
                             lottery.friends.remove(profile)
                         item.update({"text": text})
-
             friendList = []
             for friend in lottery.friends.all():
                 name = friend.enter_name
@@ -547,10 +528,14 @@ def callback_query(query):
                 payment = InlineKeyboardButton('💳 رفتن به مرحله پرداخت', callback_data=f"payment-{friend_id}-{lottery_id}-{friend_name}")
                 if [payment] not in keyboard:
                     keyboard.append([payment])
-            keyboard.append([
-                InlineKeyboardButton("بازگشت",
-                                     callback_data=f"selectedGame-{lottery.id}-{lottery.game.id}-{lottery.game.name}"),
-            ])
+                    bck = [
+                        InlineKeyboardButton("بازگشت",
+                                             callback_data=f"selectedGame-{lottery.id}-{lottery.game.id}-{lottery.game.name}"),
+                    ]
+                    if bck in keyboard:
+                        keyboard.remove(bck)
+                    keyboard.append(bck)
+
             keyboard = InlineKeyboardMarkup(keyboard)
             friendList = INIsection(Bold('دوستان انتخاب شده'), friendList)
             game_name = lottery.game.name
@@ -661,8 +646,9 @@ def any(message):
 
         if data['callback_data'] == 'login':
             # check validation of code:
-            exists = Profile.objects.filter(login_code=message.text).exists()
+            exists = Profile.objects.filter(referral_code=message.text).exists()
             admin_login_code = Admins.objects.filter(login_code=message.text).exists()
+            print('login:', exists, admin_login_code)
             if exists or admin_login_code:
                 profile = Profile.objects.get(user_id=message.chat.id)
                 profile.login_code = message.text
