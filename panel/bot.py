@@ -48,7 +48,9 @@ def start(message):
     try:
         user_info = Profile.objects.get(user_id=message.chat.id)
         keyboard = InlineKeyboardMarkup(main_keyboard)
-        message.answer('سلام دوباره! خیلی خوشحالیم که به جمع ما برگشتی.', keyboard=keyboard)
+        text = 'سلام دوباره! خیلی خوشحالیم که به جمع ما برگشتی.'
+        keyboard = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
+        message.answer(text, keyboard=keyboard)
     except Profile.DoesNotExist:
 
         first_name = message.chat.first_name
