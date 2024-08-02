@@ -17,7 +17,8 @@ class User:
             can_join_groups: Optional[bool] = None,
             can_read_all_group_messages: Optional[bool] = None,
             supports_inline_queries: Optional[bool] = None,
-            can_connect_to_business: Optional[bool] = None
+            can_connect_to_business: Optional[bool] = None,
+            has_main_web_app: Optional[bool] = None,
     ):
         """
         Initialize the User object.
@@ -47,6 +48,7 @@ class User:
         self.can_read_all_group_messages = can_read_all_group_messages
         self.supports_inline_queries = supports_inline_queries
         self.can_connect_to_business = can_connect_to_business
+        self.has_main_web_app = has_main_web_app
 
         payload = {
             'id': self.id,
