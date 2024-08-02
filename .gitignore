@@ -6,16 +6,7 @@ node_modules
 # local env files
 .env.local
 .env.*.local
-public
-src
-babel.config.js
-jsconfig.json
-package.json
-package-lock.json
-postcss.config.js
 static.zip
-tailwind.config.js
-vue.config.js
 .gitignore
 # Log files
 npm-debug.log*
@@ -26,7 +17,6 @@ pnpm-debug.log*
 # Editor directories and files
 *.idea
 .idea
-.browserslistrc
 .vscode
 *.suo
 *.ntvs*
@@ -36,8 +26,4 @@ pnpm-debug.log*
 .env
 venv
 .venv
-panel/config.ini
-media
-public
-src
 node_modules
