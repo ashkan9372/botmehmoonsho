@@ -70,7 +70,7 @@ def generate_ticket(name, date, ticket):
 	image = Image.open(settings.BASE_DIR / 'panel' /"ticket.jpg")
 
 	draw = ImageDraw.Draw(image)
-	draw.text((1080, 660), name, (109, 129, 58), font=english_font)
+	draw.text((1080, 660), name, (109, 129, 58), font=persian_font)
 	draw.text((620, 400), ticket, (109, 129, 58), font=english_font2)
 
 	draw.text((255, 645), date, (109, 129, 58), font=persian_font)
