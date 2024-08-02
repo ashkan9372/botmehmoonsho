@@ -8,6 +8,8 @@ from monogram.methods import getChatMember
 from monogram.types import ChatMember, InlineKeyboardMarkup, InlineKeyboardButton
 from monogram.extentions.conversation import Conversation
 import re
+
+
 def is_command(message):
   try:
       print('msggggg:', message.photo, message.text)
@@ -53,7 +55,23 @@ def check_regester(message):
                 print('state 1:UNRegistered', regestering, is_command(message))
                 if regestering and (is_command(message)):
                     print('state 1:regestering')
-                    message.answer(text)
+                    user_info = Profile.objects.get(user_id=message.chat.id)
+                    if user_info.login_code == None:
+                        text = "🔹 کد معرف رو وارد کنید:"
+                        message.answer(text)
+                        c = Conversation(user_id=message.chat.id)
+                        c.create(callback_data='login')
+
+                    if user_info.login_code != None and user_info.enter_name == None:
+                        c = Conversation(user_id=message.chat.id)
+                        c.create(callback_data='enter_name')
+                        text = '👤 نام و نام خانوادگی خود را به حروف فارسی وارد کنید, توجه داشته باشید که این نام باید مطابق با نام و نام خانوادگی درج شده روی کارت بانکی شما باشد:'
+                        message.answer(text)
+                    if user_info.login_code != None and user_info.enter_id == None:
+                        c = Conversation(user_id=message.chat.id)
+                        c.change_callback_data(callback_data='enter_id')
+                        text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+                        message.answer(text)
                     return False
                 else:
                     return True
