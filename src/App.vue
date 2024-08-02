@@ -8,11 +8,21 @@
                 </svg>
                 <span>کاربرها</span>
             </router-link>
-            <router-link to="/Messages" class="flex flex-row gap-4 items-center block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
+            <router-link to="/Messages" class="flex flex-row gap-4 items-center justify-between block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
+                <div class="flex flex-row gap-4 items-center ">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
                   <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
                 </svg>
                 <span>پیام های پشتیبانی</span>
+                </div>
+                <template v-if="userUnReadMessages.status">
+                  <span class="flex">
+                    <span class="animate-ping absolute inline-flex w-6 h-6 rounded-full bg-sky-400 opacity-85"></span>
+                    <div class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-sky-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
+                      {{ userUnReadMessages.count }}
+                    </div>
+                  </span>
+                </template>
               </router-link>
             <router-link to="/Winning" class="flex flex-row gap-4 items-center block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trophy" viewBox="0 0 16 16">
@@ -51,7 +61,12 @@ import Table from "@/components/table.vue";
 import axios from 'axios';
 export default {
   data() {
-    return {}
+    return {
+      userUnReadMessages: {
+        count: 0,
+        status: false
+      },
+    }
   },
   methods: {
     Logout() {
@@ -63,7 +78,22 @@ export default {
         .catch(error => {
           console.error(error);
         });
-    }
+    },
+    unReadMessages(){
+      this.axios.get('/api/totalUnReadMessages', ).then((response) => {
+        if(response) {
+          console.log(response.data)
+          this.userUnReadMessages.count = response.data['data']['count']
+          console.log(response.data['data']['count'], typeof response.data['data']['count'])
+          if (this.userUnReadMessages.count != 0) {
+            this.userUnReadMessages.status = true
+          }
+        }
+      })
+    },
+  },
+  mounted() {
+    this.unReadMessages()
   }
 };
 </script>

@@ -22,6 +22,10 @@ export default {
         text: '',
         image: null
       },
+      userUnReadMessages: {
+        count: 0,
+        status: false
+      },
     }
   },
   mounted() {
@@ -32,6 +36,7 @@ export default {
     };
     this.axios.get('/api/loadProfile',{params: params}).then((response) => {
       this.datum = response.data['data'][0]
+      this.unReadMessages()
     })
   },
   methods: {
@@ -113,7 +118,7 @@ export default {
         };
         this.axios.get('/api/loadMessagesyHistoryOfProfile',{params: params}).then((response) => {
           this.messagesDatum = response.data['data']
-          console.log('message data:', this.messagesDatum)
+          // console.log('message data:', this.messagesDatum)
         })
       }
     },
@@ -213,7 +218,23 @@ export default {
     },
     openImageInNewWindow(imageUrl) {
       window.open(imageUrl, '_blank');
-    }
+    },
+    unReadMessages(){
+      const params = {
+        "id": this.datum['id'],
+      };
+      console.log(params)
+      this.axios.get('/api/unReadMessages', {params: params}).then((response) => {
+        if(response) {
+          console.log(response.data)
+          this.userUnReadMessages.count = response.data['data']['count']
+          console.log(response.data['data']['count'], typeof response.data['data']['count'])
+          if (this.userUnReadMessages.count != 0) {
+            this.userUnReadMessages.status = true
+          }
+        }
+      })
+    },
   },
 }
 </script>
@@ -324,8 +345,8 @@ export default {
           </template>
       </Modal>
     </div>
-    <div class="w-48">
-      <Modal @modalOpened='modalHandlerMessages' btn-title="پیام ها" modal-title="لیست پیام های کاربر">
+    <div class="w-48 relative inline-flex">
+      <Modal @modalOpened='modalHandlerMessages' btn-title="پیام ها" :modal-title="'لیست پیام های کاربر: '+userUnReadMessages.count+'تیکت باز وجود دارد.'">
         <template v-slot:modalBody>
           <Table>
               <template v-slot:head>
@@ -430,6 +451,14 @@ export default {
             </Table>
           </template>
       </Modal>
+      <template v-if="userUnReadMessages.status">
+        <span class="flex absolute h-4 w-4 top-0 right-0 -mt-1 -mr-1">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-4 w-4 bg-rose-500">
+          </span>
+        </span>
+      </template>
+
     </div>
     <div class="w-48">
       <Modal @modalOpened='modalHandlerWinning' btn-title="برنده شدن ها" modal-title="لیست تعداد دفعات برنده شده">

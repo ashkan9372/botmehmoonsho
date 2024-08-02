@@ -732,3 +732,16 @@ def unread_messages_count(request):
     setting = Setting.objects.get(id=1)
     return JsonResponse(generate_response(message='successful', data={'count': setting.total_unread_messages}))
 
+def unReadMessages(request):
+    id = request.GET.get('id')
+    try:
+        sender = Profile.objects.get(id=id)
+        msg = Messages.objects.filter(sender=sender, status='OPEN')
+        print(msg.count())
+        total_unread_messages = msg.count()
+        return JsonResponse(generate_response(message='successful', data={'count': total_unread_messages}))
+
+    except Profile.DoesNotExist:
+        return JsonResponse(generate_response(error='error read total_unread_messages'))
+
+
