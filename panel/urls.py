@@ -33,5 +33,6 @@ urlpatterns = [
     path("selectToWin", selectToWin),
     path("generateExcel", generateExcel),
     path("endLottery", endLottery),
-
+    path("endLottery", endLottery),
+    path('unReadMessages', unread_messages_count, name='unread_messages_count'),
 ]

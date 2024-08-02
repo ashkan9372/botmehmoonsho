@@ -725,3 +725,10 @@ def endLottery(request):
         lottery.save()
 
     return JsonResponse(generate_response(message='successful'))
+
+
+@csrf_exempt
+def unread_messages_count(request):
+    setting = Setting.objects.get(id=1)
+    return JsonResponse(generate_response(message='successful', data={'count': setting.total_unread_messages}))
+
