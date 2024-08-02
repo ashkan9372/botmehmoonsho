@@ -31,6 +31,7 @@ urlpatterns = [
     path('Winning/', WinningView, name='Winning'),
     path('Settings/', SettingsView, name='Settings'),
     path('Login/', LoginView, name='Login'),
+    path('Logout/', LogoutView, name='Logout'),
 ]
 
 if settings.DEBUG:
