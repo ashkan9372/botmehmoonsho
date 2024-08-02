@@ -69,3 +69,5 @@ class Setting(models.Model):
 
     channel = models.CharField(max_length=255, blank=True)
     link = models.URLField(blank=True)
+
+    total_unread_messages = models.PositiveIntegerField(blank=True, null=True, default=0)
