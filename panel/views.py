@@ -11,6 +11,7 @@ from monogram.types import InputFile
 from monogram.text import INIsection, Bold
 import jdatetime
 from panel.assist import generate_ticket, get_time
+from django.contrib.auth import authenticate, login, logout
 
 def convert_date(date):
     if date:
@@ -50,39 +51,65 @@ def generate_response(data=None, message='successful', error=None, status_code=2
 
   return response
 
-# Create your views here.
+
+from django.shortcuts import redirect
+def login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return view_func(request, *args, **kwargs)
+        else:
+            return redirect('Login')
+    return wrapper
+
+# Create your views here
+@login_required
 def home(request):
     return render(request, 'index.html')
 
+@login_required
 def ProfileView(request):
     return render(request, 'Profile.html')
 
+@login_required
 def MessagesView(request):
     return render(request, 'Messages.html')
 
+@login_required
 def WinningView(request):
     return render(request, 'Winning.html')
 
+@login_required
 def SettingsView(request):
     return render(request, 'Settings.html')
 
-from django.contrib.auth import authenticate
+@csrf_exempt
 def LoginView(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        username = data.get('username')
-        password = data.get('password')
+        print('login')
+        username = request.GET.get('username')
+        password = request.GET.get('password')
         print(username, password)
-
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            login(request, user)
             # Login successful
+            request.session['user_id'] = user.id
+            print(request.path)
             return JsonResponse(generate_response(message='successful'))
         else:
             # Login failed
-            return JsonResponse(generate_response(error='Login failed'))
+            return JsonResponse(generate_response(message='حطا در ورود: نام کاربری یا یوزرنیم بافت نشد!', error='Login failed', status_code=404), status=401)
     else:
         return render(request, 'Login.html')
+
+@csrf_exempt
+def LogoutView(request):
+    if request.method == 'POST':
+        logout(request)
+        return JsonResponse(generate_response(message='successful'))
+    else:
+        # Login failed
+        return JsonResponse(generate_response(error='Logout failed'))
 
 def get_users(request):
     if request.method == 'GET':
@@ -176,7 +203,7 @@ def loadMessagesyHistoryOfProfile(request):
         messages = Messages.objects.filter(sender=profile_id)
         message_data = []
         for message in messages:
-            print(message.sender_picture.url)
+            # print(message.sender_picture.url)
             sender_profile = message.sender
             message_data.append({
                 'id': message.id,
