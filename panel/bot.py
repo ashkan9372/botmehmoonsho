@@ -47,7 +47,6 @@ def start(message):
         # print(filename)
     try:
         user_info = Profile.objects.get(user_id=message.chat.id)
-        keyboard = InlineKeyboardMarkup(main_keyboard)
         text = 'سلام دوباره! خیلی خوشحالیم که به جمع ما برگشتی.'
         keyboard = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
         message.answer(text, keyboard=keyboard)
@@ -59,7 +58,6 @@ def start(message):
         last_name = last_name if last_name else ''
         full_name = first_name + last_name
         filename = f"img/profile_pictures/{filename}" if filename else None
-        login_code = message.text.split()[1].strip() if len(message.text.split()) > 1 else None
         username = message.chat.username
         user_id = message.chat.id
         status = 'Registering'
@@ -67,18 +65,62 @@ def start(message):
 
         welcome_message = f"""سلام رفیق گل! ‍♀️‍♂️به {Bold('ربات مهمونشو')} خوش اومدی! اینجا یه جای باحالِ پر از آدمای باحالِ خوش‌گذرانِ دوست‌داشتنیه! هر هفته یه {Bold('قرعه‌کشی خفن')} داریم که برنده‌ها باید با جایزه‌شون دوستاشون رو مهمون کنن! فقط کافیه یه {Bold('کد معرفی')} از یکی از اعضای ربات بگیری و عضو شی تا تو هم تو این جمع باحال باشی! {Bold('منتظرتیم!')}"""
         message.answer(welcome_message)
-    # print(user_info.login_code)
-    if user_info.login_code == None:
-        text = "🔹 کد معرف رو وارد کنید:"
-        message.answer(text)
-        c = Conversation(user_id=message.chat.id)
-        c.create(callback_data='login')
 
-    if user_info.login_code != None and user_info.enter_name == None:
+    if user_info.enter_name == None:
         c = Conversation(user_id=message.chat.id)
         c.create(callback_data='enter_name')
         text = '👤 نام و نام خانوادگی خود را به حروف فارسی وارد کنید, توجه داشته باشید که این نام باید مطابق با نام و نام خانوادگی درج شده روی کارت بانکی شما باشد:'
         message.answer(text)
+    if user_info.enter_name != None and user_info.enter_id == None:
+        c = Conversation(user_id=message.chat.id)
+        c.create(callback_data='enter_id')
+        text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+        message.answer(text)
+
+    # invite link:
+    msg = message.text.split()
+    if len(msg) > 1:
+        print(msg[1].strip(), type(msg[1].strip()), msg[1] ,type(msg[1]))
+        friends_id = msg[1].strip()
+        try:
+            profile = Profile.objects.get(user_id=message.chat.id)
+            friend_profile = Profile.objects.get(id=friends_id)
+            # Check if a friendship already exists between these two users
+            friendship, created = profileFriend.objects.get_or_create(
+                from_user=profile,
+                to_user=friend_profile,
+                defaults={"status": 'Pending'},
+            )
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ تایید",
+                                         callback_data=f"acceptFriend-{friend_profile.id}-nousername"),
+                    InlineKeyboardButton("❌ رد",
+                                         callback_data=f"cancelFriend-{friend_profile.id}-nousername"),
+                ]
+            ]
+            keyboard = InlineKeyboardMarkup(keyboard)
+            # if created send request to user
+            if created:
+                # Check if friend is already in user's friend list
+                text = f"شما از لینک دعوت به دوستی کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} استفاده کردین.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                message.reply(text=text, keyboard=keyboard)
+            # If the friendship already exists, update the status
+            if not created:
+                if friendship.status == 'Pending':
+                    text = f"کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} قبلا برای شما درخواست دوستی فرسستاده! از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                    message.reply(text=text, keyboard=keyboard)
+                if friendship.status == 'Accepted':
+                    text = f"در حال حاظر کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} در لیست دوستان شما قرار دارد."
+                    message.reply(text=text)
+
+        except Profile.DoesNotExist:
+            text = 'هیچ کاربری با این نام کاربری در سیستم وجود ندارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
+            keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
+            keyboard = InlineKeyboardMarkup(keyboard)
+            message.reply(text=text, keyboard=keyboard)
+
+
 
 @bot.newMessage(pattern='📢 مشاهده کانال')
 def visit_channel(message):
@@ -91,15 +133,15 @@ def visit_channel(message):
     message.answer("🔹 برای دیدن کانال ما از دکمه زیر استفاده کن.", keyboard=keyboard)
 
 @bot.newMessage(pattern='📤 ارسال لینک دعوت')
-def share_invite_code(message):
+def share_invite_link(message):
     try:
         profile = Profile.objects.get(user_id=message.chat.id)
         full_name = profile.enter_name
-        referral_code = profile.referral_code
+        # referral_code = profile.referral_code
         # print(referral_code)
         me = getMe()
         u = User(**me['result'])
-        bot_id = u.id
+        # bot_id = u.id
         bot_username = u.username
         url = "http://t.me/share/url?url="
         text = f"سلام رفیق! من {full_name} هستم.\nدوست دارم باهات تو ربات مهمون شو بازی کنم!\nاگه موافق هستی که از این هفته بازی کنیم، روی لینک زیر بزن و با لینک دعوت من عضو ربات شو.\nhttp://t.me/{bot_username}?start={profile.id}"
@@ -386,7 +428,7 @@ def callback_query(query):
     if 'acceptFriend' in query.data:
         data = query.data.split('-')
         friend_id = data[1]
-        username = data[2]
+        # username = data[2]
         try:
             profile = Profile.objects.get(user_id=friend_id)
             friend_profile = Profile.objects.get(user_id=chat_id)
@@ -419,7 +461,7 @@ def callback_query(query):
     if 'cancelFriend' in query.data:
         data = query.data.split('-')
         friend_id = data[1]
-        username = data[2]
+        # username = data[2]
         try:
             profile = Profile.objects.get(user_id=friend_id)
             friend_profile = Profile.objects.get(user_id=chat_id)
@@ -643,25 +685,7 @@ def any(message):
     conv = Conversation(message.chat.id)
     data = conv.data()
     print('conversations:', data)
-    print(filter_message(message))
     if data and (filter_message(message)==False):
-
-        if data['callback_data'] == 'login':
-            # check validation of code:
-            exists = Profile.objects.filter(referral_code=message.text).exists()
-            admin_login_code = Admins.objects.filter(login_code=message.text).exists()
-            print('login:', exists, admin_login_code)
-            if exists or admin_login_code:
-                profile = Profile.objects.get(user_id=message.chat.id)
-                profile.login_code = message.text
-                profile.save()
-                # conv.cancel()
-                conv.change_callback_data(callback_data='enter_name')
-                text = '👤 نام و نام خانوادگی خود را به حروف فارسی وارد کنید, توجه داشته باشید که این نام با نام و نام خانوادگی روی کارت بانکی شما یکسان یاشد:'
-                message.answer(text)
-            else:
-                text = 'لطفا لینک دعوت را از دوستان خود بگیرید یا از طریق لینک معرف آنها اقدام کنید, کد وارد شده صحیح نیست دوباره وارد کنید:'
-                message.answer(text)
         if data['callback_data'] == 'enter_name':
             if is_persian_name(message.text):
                 profile = Profile.objects.get(user_id=message.chat.id)
@@ -819,7 +843,7 @@ def any(message):
 
 
 UPDATE_HANDLER = {
-    'message': [start, any, visit_channel, share_invite_code, friends_management, edit_profile, bot_tutorial, bot_support, lottery, lottery_info, info],
+    'message': [start, any, visit_channel, share_invite_link, friends_management, edit_profile, bot_tutorial, bot_support, lottery, lottery_info, info],
     'callback_query': [callback_query, ]
 }
 @csrf_exempt

@@ -56,20 +56,14 @@ def check_regester(message):
                 if regestering and (is_command(message)):
                     print('state 1:regestering')
                     user_info = Profile.objects.get(user_id=message.chat.id)
-                    if user_info.login_code == None:
-                        text = "🔹 کد معرف رو وارد کنید:"
-                        message.answer(text)
-                        c = Conversation(user_id=message.chat.id)
-                        c.create(callback_data='login')
-
-                    if user_info.login_code != None and user_info.enter_name == None:
+                    if user_info.enter_name == None:
                         c = Conversation(user_id=message.chat.id)
                         c.create(callback_data='enter_name')
                         text = '👤 نام و نام خانوادگی خود را به حروف فارسی وارد کنید, توجه داشته باشید که این نام باید مطابق با نام و نام خانوادگی درج شده روی کارت بانکی شما باشد:'
                         message.answer(text)
-                    if user_info.login_code != None and user_info.enter_id == None:
+                    if user_info.enter_name != None and user_info.enter_id == None:
                         c = Conversation(user_id=message.chat.id)
-                        c.change_callback_data(callback_data='enter_id')
+                        c.create(callback_data='enter_id')
                         text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
                         message.answer(text)
                     return False
