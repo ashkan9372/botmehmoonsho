@@ -14,8 +14,8 @@ class Profile(models.Model):
   picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
   user_id = models.IntegerField()
   friends = models.ManyToManyField('self', through='profileFriend', blank=True)
-  login_code = models.CharField(max_length=255, blank=True, null=True)  # Can be blank if not used
-  referral_code = models.CharField(max_length=255, blank=True, null=True, default=generate_uid())  # Can be blank if not used
+  # login_code = models.CharField(max_length=255, blank=True, null=True)  # Can be blank if not used
+  # referral_code = models.CharField(max_length=255, blank=True, null=True, default=generate_uid())  # Can be blank if not used
   status = models.CharField(max_length=20, default="Unregistered", choices=(('Registered', 'Registered'), ('Registering', 'Registering'), ('Unregistered', 'Unregistered')))
 
   def __str__(self):
@@ -54,7 +54,7 @@ class Messages(models.Model):
 class Admins(models.Model):
     name = models.CharField(max_length=255, blank=True)
     user_id = models.IntegerField()
-    login_code = models.CharField(max_length=255, blank=True, null=True, default=generate_uid())  # Can be blank if not used
+    # login_code = models.CharField(max_length=255, blank=True, null=True, default=generate_uid())  # Can be blank if not used
 
 
 class Setting(models.Model):

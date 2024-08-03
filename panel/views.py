@@ -148,13 +148,13 @@ def recordChangesOfProfile(request):
     profile_id = request.GET.get('id')
     enter_id = request.GET.get('enter_id')
     enter_name = request.GET.get('enter_name')
-    referral_code = request.GET.get('referral_code')
+    # referral_code = request.GET.get('referral_code')
 
     try:
         # Get the profile by ID
         profile = Profile.objects.get(id=profile_id)
         # Update the profile object with new values
-        profile.referral_code = referral_code
+        # profile.referral_code = referral_code
         profile.enter_name = enter_name
         profile.enter_id = enter_id
 
@@ -181,9 +181,9 @@ def loadProfileFriends(request):
                 "enter_name": profile.enter_name,
                 "full_name": profile.full_name,
                 "id": profile.id,
-                "login_code": profile.login_code,
+                # "login_code": profile.login_code,
                 "picture": profile.picture.url if profile.picture else None,
-                "referral_code": profile.referral_code,
+                # "referral_code": profile.referral_code,
                 "user_id": profile.user_id,
                 "username": profile.username,
             }
