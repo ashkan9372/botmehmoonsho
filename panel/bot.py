@@ -77,50 +77,6 @@ def start(message):
         text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
         message.answer(text)
 
-    # invite link:
-    msg = message.text.split()
-    if len(msg) > 1:
-        print(msg[1].strip(), type(msg[1].strip()), msg[1] ,type(msg[1]))
-        friends_id = msg[1].strip()
-        try:
-            profile = Profile.objects.get(user_id=message.chat.id)
-            friend_profile = Profile.objects.get(id=friends_id)
-            # Check if a friendship already exists between these two users
-            friendship, created = profileFriend.objects.get_or_create(
-                from_user=profile,
-                to_user=friend_profile,
-                defaults={"status": 'Pending'},
-            )
-            keyboard = [
-                [
-                    InlineKeyboardButton("✅ تایید",
-                                         callback_data=f"acceptFriend-{friend_profile.id}-nousername"),
-                    InlineKeyboardButton("❌ رد",
-                                         callback_data=f"cancelFriend-{friend_profile.id}-nousername"),
-                ]
-            ]
-            keyboard = InlineKeyboardMarkup(keyboard)
-            # if created send request to user
-            if created:
-                # Check if friend is already in user's friend list
-                text = f"شما از لینک دعوت به دوستی کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} استفاده کردین.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
-                message.reply(text=text, keyboard=keyboard)
-            # If the friendship already exists, update the status
-            if not created:
-                if friendship.status == 'Pending':
-                    text = f"کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} قبلا برای شما درخواست دوستی فرسستاده! از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
-                    message.reply(text=text, keyboard=keyboard)
-                if friendship.status == 'Accepted':
-                    text = f"در حال حاظر کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} در لیست دوستان شما قرار دارد."
-                    message.reply(text=text)
-
-        except Profile.DoesNotExist:
-            text = 'هیچ کاربری با این نام کاربری در سیستم وجود ندارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
-            keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
-            keyboard = InlineKeyboardMarkup(keyboard)
-            message.reply(text=text, keyboard=keyboard)
-
-
 
 @bot.newMessage(pattern='📢 مشاهده کانال')
 def visit_channel(message):
@@ -144,7 +100,7 @@ def share_invite_link(message):
         # bot_id = u.id
         bot_username = u.username
         url = "http://t.me/share/url?url="
-        text = f"سلام رفیق! من {full_name} هستم.\nدوست دارم باهات تو ربات مهمون شو بازی کنم!\nاگه موافق هستی که از این هفته بازی کنیم، روی لینک زیر بزن و با لینک دعوت من عضو ربات شو.\nhttp://t.me/{bot_username}?start={profile.id}"
+        text = f"سلام رفیق! من {full_name} هستم.\nدوست دارم باهات تو ربات مهمون شو بازی کنم!\nاگه موافق هستی که از این هفته بازی کنیم، روی لینک زیر بزن و با لینک دعوت من عضو لیست دوستان من شو.\nhttp://t.me/{bot_username}?invite={profile.id}"
         encoded_url = quote(text)
         url = url + encoded_url
         keyboard = [[InlineKeyboardButton("⤴ اشتراک گذاری", url)]]
@@ -152,6 +108,51 @@ def share_invite_link(message):
         message.answer(text, keyboard=keyboard)
     except Profile.DoesNotExist:
         message.answer("متاسفانه، کاربری با مشخصاتی که شما وارد کرده اید در سیستم ما یافت نشد.")
+
+@bot.newMessage(pattern='/invite')
+def invite(message):
+    # invite link:
+    msg = message.text.split()
+    if len(msg) > 1:
+        friends_id = msg[1]
+        try:
+            profile = Profile.objects.get(user_id=message.chat.id)
+            friend_profile = Profile.objects.get(id=friends_id)
+            # Check if a friendship already exists between these two users
+            friendship, created = profileFriend.objects.get_or_create(
+                from_user=profile,
+                to_user=friend_profile,
+                defaults={"status": 'Pending'},
+            )
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ تایید",
+                                         callback_data=f"acceptFriend-{friend_profile.user_id}-nousername"),
+                    InlineKeyboardButton("❌ رد",
+                                         callback_data=f"cancelFriend-{friend_profile.user_id}-nousername"),
+                ]
+            ]
+            keyboard = InlineKeyboardMarkup(keyboard)
+            # if created send request to user
+            if created:
+                # Check if friend is already in user's friend list
+                text = f"شما از لینک دعوت به دوستی کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} استفاده کردین.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                message.reply(text=text, keyboard=keyboard)
+            # If the friendship already exists, update the status
+            if not created:
+                if friendship.status == 'Pending':
+                    text = f"کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} قبلا برای شما درخواست دوستی فرسستاده! از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                    message.reply(text=text, keyboard=keyboard)
+                if friendship.status == 'Accepted':
+                    text = f"در حال حاظر کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} در لیست دوستان شما قرار دارد."
+                    message.reply(text=text)
+
+        except Profile.DoesNotExist:
+            text = 'هیچ کاربری با این نام کاربری در سیستم وجود ندارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
+            keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
+            keyboard = InlineKeyboardMarkup(keyboard)
+            message.reply(text=text, keyboard=keyboard)
+
 
 def friends_management_home():
     text = """🔹 میتونی با ارسال لینک دعوت به دوستات اونا رو عضو ربات کنی تا بعد بتونی به لیست دوستات اضافه‌شون کنی.
@@ -429,6 +430,7 @@ def callback_query(query):
         data = query.data.split('-')
         friend_id = data[1]
         # username = data[2]
+        print(f"acceptFriend: friend_id:{friend_id}, profile: {chat_id}")
         try:
             profile = Profile.objects.get(user_id=friend_id)
             friend_profile = Profile.objects.get(user_id=chat_id)
@@ -444,7 +446,9 @@ def callback_query(query):
 
             # Add friends to each other's lists (if not already added)
             if friend_profile not in profile.friends.all():
-                profile.friends.add(friend_profile)
+                # profile.friends.add(friend_profile)
+                friendship = profileFriend(from_user=profile, to_user=friend_profile, status='Accepted')
+                friendship.save()
             if profile not in friend_profile.friends.all():
                 # friend_profile.friends.add(profile)
                 friendship = profileFriend(from_user=friend_profile, to_user=profile, status='Accepted')
@@ -667,7 +671,7 @@ def filter_message(message):
   try:
       text = message.text or message.caption
       if text:
-          patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال لینک دعوت', '👤 ویرایش اطلاعات', '👥 لیست دوستان', '🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام', '📚 اطلاعات قرعه کشی']
+          patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال لینک دعوت', '👤 ویرایش اطلاعات', '👥 لیست دوستان', '🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام', '📚 اطلاعات قرعه کشی', '/invite']
           compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
           for pattern in compiled_patterns:
               match = pattern.search(text)
@@ -843,7 +847,7 @@ def any(message):
 
 
 UPDATE_HANDLER = {
-    'message': [start, any, visit_channel, share_invite_link, friends_management, edit_profile, bot_tutorial, bot_support, lottery, lottery_info, info],
+    'message': [start, any, visit_channel, share_invite_link, invite, friends_management, edit_profile, bot_tutorial, bot_support, lottery, lottery_info, info],
     'callback_query': [callback_query, ]
 }
 @csrf_exempt
