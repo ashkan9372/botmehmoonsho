@@ -5,12 +5,13 @@ import Table from "@/components/table.vue";
 import Input from "@/components/input.vue";
 import {FwbButton} from "flowbite-vue";
 import {useToast} from "vue-toastification";
+import DatePicker from "@/components/DatePicker.vue";
 
 const toast = useToast();
 
 export default {
   name: "Settings",
-  components: {FwbButton, Input, Table, Modal, Button},
+  components: {DatePicker, FwbButton, Input, Table, Modal, Button},
   data(){
     return {
       admin: {
@@ -20,6 +21,7 @@ export default {
       game: '',
       adminsDatum: [],
       gamesDatum: [],
+      selectedPaymentMethod: 'card-to-card',
       payment_card: {
         number: '',
         name: '',
@@ -116,6 +118,7 @@ export default {
         'card_name': this.payment_card.name,
         'card_number': this.payment_card.number,
         'price': this.payment_card.price,
+        'payment_method': this.selectedPaymentMethod
       }
       this.axios.get('/api/setCard', {params:params}).then((response) => {
           toast.success('اطلاعات کارت مورد نظر با موفقیت ثبت شد');
@@ -126,6 +129,7 @@ export default {
         'card_name': this.payment_card.name,
         'card_number': this.payment_card.number,
         'price': this.payment_card.price,
+        'payment_method': this.selectedPaymentMethod
       }
       this.axios.get('/api/updateCard', {params:params}).then((response) => {
           toast.success('اطلاعات کارت مورد نظر با موفقیت آپدیت شد');
@@ -275,13 +279,27 @@ export default {
       <p class="font-normal text-gray-700 dark:text-gray-400">این قسمت مربوط به تنظیمات پرداخت میباشد در این قسمت می توانید روش پرداخت را انتخاب کنید همچنین می توانید اطلاعات پرداخت خود را وارد کنید.</p>
     </header>
     <main class="flex flex-col gap-2">
-      <div class="flex flex-wrap  gap-2">
+      <div class="flex flex-col gap-2 justify-start w-1/2">
         <Input @update="payment_card['number']=$event" title="شماره کارت" :disabled="payment_card['edit']" :value="payment_card['number']"/>
         <Input @update="payment_card['name']=$event" title="نام و نام حانوادگی درج شده روی کارت" :disabled="payment_card['edit']" :value="payment_card['name']"/>
         <Input @update="payment_card['price']=$event" title="مبلغ قرعه کشی (تومان):" :disabled="payment_card['edit']" :value="payment_card['price']"/>
-        <fwb-button @click="payment_card['edit']=false">ویرایش</fwb-button>
-        <fwb-button @click="setCard">ثبت کردن</fwb-button>
-        <fwb-button @click="updateCard">آپدیت کردن</fwb-button>
+
+        <div class="">
+          <h1 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">روش پرداخت</h1>
+          <div class="flex items-center mb-4">
+            <input type="radio" id="default-radio-1" value="card-to-card" v-model="selectedPaymentMethod" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            <label for="default-radio-1" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">کارت به کارت</label>
+          </div>
+          <div class="flex items-center">
+            <input type="radio" id="default-radio-2" value="payment-gateway" v-model="selectedPaymentMethod" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            <label for="default-radio-2" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">درگاه پرداخت</label>
+          </div>
+        </div>
+        <div class="w-50 flex flex-row gap-2">
+          <fwb-button @click="payment_card['edit']=false">ویرایش</fwb-button>
+          <fwb-button @click="setCard">ثبت کردن</fwb-button>
+          <fwb-button @click="updateCard">آپدیت کردن</fwb-button>
+        </div>
       </div>
     </main>
   </main>
@@ -295,7 +313,8 @@ export default {
       <div class="flex flex-row items-end gap-4">
         <div class="flex flex-col">
           <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">شروع ثبت نام:</h5>
-          <date-picker v-model="date.start" type="datetime"></date-picker>
+          <DatePicker></DatePicker>
+<!--          <date-picker v-model="date.start" type="datetime"></date-picker>-->
         </div>
         <div class="flex flex-col">
           <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">پایان ثبت نام:</h5>

@@ -62,6 +62,7 @@ class Setting(models.Model):
     card_name = models.CharField(max_length=100)
     card_number = models.PositiveIntegerField()
     price = models.PositiveIntegerField(blank=True, null=True)
+    payment_method = models.CharField(max_length=20, choices=(('card-to-card', 'card-to-card'), ('payment-gateway', 'payment-gateway')), default='card-to-card')
     # lottery date
     start_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField(blank=True, null=True)

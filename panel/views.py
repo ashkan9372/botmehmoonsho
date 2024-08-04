@@ -470,13 +470,15 @@ def setCard(request):
     card_name = request.GET.get('card_name')
     card_number = request.GET.get('card_number')
     price = request.GET.get('price')
+    payment_method = request.GET.get('payment_method')
     try:
         # Get the profile by ID
-        seting = Setting()
-        seting.card_name = card_name
-        seting.card_number = card_number
-        seting.price = price
-        seting.save()
+        setting = Setting()
+        setting.card_name = card_name
+        setting.card_number = card_number
+        setting.price = price
+        setting.payment_method = payment_method
+        setting.save()
         # Return profile data as a dictionary
         return JsonResponse(generate_response(message='successful'))
     except Admins.DoesNotExist:
@@ -488,13 +490,15 @@ def updateCard(request):
     card_name = request.GET.get('card_name')
     card_number = request.GET.get('card_number')
     price = request.GET.get('price')
+    payment_method = request.GET.get('payment_method')
     try:
         # Get the profile by ID
-        seting = Setting.objects.get(id=1)
-        seting.card_name = card_name
-        seting.card_number = card_number
-        seting.price = price
-        seting.save()
+        setting = Setting.objects.get(id=1)
+        setting.card_name = card_name
+        setting.card_number = card_number
+        setting.price = price
+        setting.payment_method = payment_method
+        setting.save()
         # Return profile data as a dictionary
         return JsonResponse(generate_response(message='successful'))
     except Admins.DoesNotExist:

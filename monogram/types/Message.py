@@ -239,7 +239,7 @@ class Message:
     #     else:
     #         editMessageText(text=text, chat_id=self.chat.id, message_id=self.message_id)
 
-    def reply(self, text: str, keyboard):
+    def reply(self, text: str, keyboard=None):
         if keyboard:
             sendMessage(
                 chat_id=self.chat.id,

@@ -6,7 +6,6 @@ node_modules
 # local env files
 .env.local
 .env.*.local
-static.zip
 .gitignore
 # Log files
 npm-debug.log*
@@ -26,4 +25,5 @@ pnpm-debug.log*
 .env
 venv
 .venv
+static
 node_modules
