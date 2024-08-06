@@ -29,6 +29,7 @@ urlpatterns = [
     path('Profile/', ProfileView, name='Profile'),
     path('Messages/', MessagesView, name='Messages'),
     path('Winning/', WinningView, name='Winning'),
+    path('Payments/', PaymentsView, name='Payments'),
     path('Settings/', SettingsView, name='Settings'),
     path('Login/', LoginView, name='Login'),
     path('Logout/', LogoutView, name='Logout'),

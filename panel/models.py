@@ -72,3 +72,4 @@ class Setting(models.Model):
     link = models.URLField(blank=True)
 
     total_unread_messages = models.PositiveIntegerField(blank=True, null=True, default=0)
+    total_payments = models.PositiveIntegerField(blank=True, null=True, default=0)

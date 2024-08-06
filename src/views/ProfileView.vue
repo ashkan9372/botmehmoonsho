@@ -86,7 +86,6 @@ export default {
         };
         this.axios.get('/api/modalHandlerLotteryProfile',{params: params}).then((response) => {
           this.lotteryDatum = response.data['data']
-          console.log(this.lotteryDatum)
         })
       }
     },
@@ -298,8 +297,8 @@ export default {
         </template>
       </Modal>
     </div>
-    <Input title="کدی که باهاش وارد شده" :value="datum['login_code']" disabled/>
-    <Input @update="datum['referral_code']=$event" title="کد مصرف خودش" :value="datum['referral_code']" />
+<!--    <Input title="کدی که باهاش وارد شده" :value="datum['login_code']" disabled/>-->
+<!--    <Input @update="datum['referral_code']=$event" title="کد مصرف خودش" :value="datum['referral_code']" />-->
     <div class="flex flex-row gap-2">
     <div class="w-48">
       <Modal @modalOpened='modalHandlerLotteryProfile' btn-title="قرعه کشی" modal-title="لیست قرعه کشی های شرکت کرده">

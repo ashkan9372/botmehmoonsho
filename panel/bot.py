@@ -320,7 +320,7 @@ def lottery_info(message):
     def conver_to_shamsi(date):
         shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
         time_zone = jdatetime.timedelta(hours=3, minutes=30)
-        shamsi_date = shamsi_date + time_zone
+        # shamsi_date = shamsi_date + time_zone
         return shamsi_date
     shamsi_start_time = conver_to_shamsi(setting.start_time)
     start_time = {
@@ -648,7 +648,7 @@ def callback_query(query):
         card_number = Bold(setting.card_number)
         card_name = Bold(setting.card_name)
         payment_price = Bold(setting.price)
-        payment_method = seting.payment_method
+        payment_method = setting.payment_method
         if payment_method == 'card-to-card':
             # text = "برای واریز مبلغ مورد نظر، لطفا به شماره کارت {card_number} به نام {card_name} وجه {payment_price} تومان را انتقال دهید.\nسپس با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
             text = f"لطفا مبلغ {payment_price} نومان را به شماره کارت زیر واریز نمایید و با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
@@ -668,7 +668,7 @@ def callback_query(query):
             url = 'https://t.me/'
             keyboard = [[InlineKeyboardButton("🔗 درگاه پرداخت", url)]]
             keyboard = InlineKeyboardMarkup(keyboard)
-            text = "لطفا مبلغ {payment_price} نومان را با فشردن دکمه زیر از طریق درگاه پرداخت واریز نمایید."
+            text = f"لطفا مبلغ {payment_price} نومان را با فشردن دکمه زیر از طریق درگاه پرداخت واریز نمایید."
             editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
 
     if 'paid' in query.data:
@@ -677,7 +677,7 @@ def callback_query(query):
         conv = Conversation(chat_id)
         conv.create('paid')
         lottery = Lottery.objects.get(id=lottery_id, status='Registering')
-        lottery.status='Registered'
+        lottery.status = 'Registered'
         lottery.save()
         text = 'لطفا عکس فیش واریزی خود را ارسال کنید:'
         query.message.answer(text)

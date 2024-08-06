@@ -18,7 +18,7 @@ def convert_date(date):
         # Convert to Shamsi date
         shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
         time_zone = jdatetime.timedelta(hours=3, minutes=30)
-        shamsi_date = shamsi_date + time_zone
+        # shamsi_date = shamsi_date + time_zone
         # Update the field in the dictionary
         return shamsi_date.strftime('%H:%M %Y/%m/%d')
     else:
@@ -77,6 +77,10 @@ def MessagesView(request):
 @login_required
 def WinningView(request):
     return render(request, 'Winning.html')
+
+@login_required
+def PaymentsView(request):
+    return render(request, 'Payments.html')
 
 @login_required
 def SettingsView(request):
@@ -536,6 +540,25 @@ def updateChannelSettings(request):
         return JsonResponse(generate_response(error='Messages not found', status_code=404))
 
 
+def sendToAll(request):
+    try:
+        message = request.GET.get('message')
+        profiles = Profile.objects.all()
+        for profile in profiles:
+            chat_id = profile.user_id
+            if request.method == 'POST':
+                uploaded_image = request.FILES['image']
+                path_file1 = 'img/uploads/' + uploaded_image.name
+                default_storage.save(path_file1, uploaded_image)
+                path_file = 'media/img/uploads/' + uploaded_image.name
+                sendPhoto(chat_id=chat_id, photo=InputFile(path_file), caption=message)
+            else:
+                sendMessage(chat_id=chat_id, text=message)
+        return JsonResponse(generate_response(message='successful'))
+    except Profile.DoesNotExist:
+        return JsonResponse(generate_response(error='error in sending message'))
+
+
 def send_message(request):
     message_id = request.GET.get('message_id')
     message = request.GET.get('message')
@@ -663,10 +686,35 @@ def sendMessageWithImageToWinner(request):
         return JsonResponse({'error': 'Invalid request method'})
 
 
+def adjust_date(date_string):
+    from datetime import datetime
+    """
+    این تابع یک تاریخ به فرمت 'YYYY/MM/DD HH:MM' دریافت می کند.
+    اگر روز تاریخ ورودی گذشته باشد، روز آن را به هفته بعد تنظیم می کند.
+
+    :param date_string: تاریخ ورودی به فرمت رشته
+    :return: تاریخ تنظیم شده به صورت شیء datetime
+    """
+
+    # تبدیل رشته تاریخ به شیء datetime
+    date_obj = datetime.strptime(date_string, '%Y/%m/%d %H:%M')
+    # بررسی اینکه آیا تاریخ ورودی از تاریخ امروز گذشته است یا خیر
+    if date_obj.date() < datetime.now().date():
+        # اضافه کردن یک هفته به تاریخ
+        date_obj += datetime.timedelta(days=7)
+
+    return date_obj
+
+
 def setDate(request):
-    start = request.GET.get('start')
-    end = request.GET.get('end')
-    lottery = request.GET.get('lottery')
+    start = json.loads(request.GET.get('start'))
+    print(start)
+    start = adjust_date(start)
+    print(start)
+    end = json.loads(request.GET.get('end'))
+    end = adjust_date(end)
+    lottery = json.loads(request.GET.get('lottery'))
+    lottery = adjust_date(lottery)
     try:
         setting = Setting.objects.get(id=1)
         setting.start_time = start
@@ -731,17 +779,38 @@ def endLottery(request):
     return JsonResponse(generate_response(message='successful'))
 
 
+def getPaymentsDate(request):
+    try:
+        lotteries = Lottery.objects.filter(payment_status='PENDING', status="Registered")
+        data = []
+        for lottery in list(lotteries.values()):
+            l = Lottery.objects.get(pk=lottery['id'])
+            lottery['register_date'] = convert_date(lottery['register_date'])
+            lottery['payment_picture'] = l.payment_picture.url if l.payment_picture else None,
+            # print(lottery['register_date'])
+            data.append(lottery)
+        # print(data)
+        # Return profile data as a dictionary
+        return JsonResponse(generate_response(message='successful', data=data))
+    except Lottery.DoesNotExist:
+        # Handle case where profile with ID is not found
+        return JsonResponse(generate_response(error='Profile not found', status_code=404))
+
+
 @csrf_exempt
-def unread_messages_count(request):
+def totalUnReadMessagesAndNewPayment(request):
     setting = Setting.objects.get(id=1)
-    return JsonResponse(generate_response(message='successful', data={'count': setting.total_unread_messages}))
+    data = {
+        'total_unread_messages': setting.total_unread_messages,
+        'total_new_payments': setting.total_payments,
+    }
+    return JsonResponse(generate_response(message='successful', data=data))
 
 def unReadMessages(request):
     id = request.GET.get('id')
     try:
         sender = Profile.objects.get(id=id)
         msg = Messages.objects.filter(sender=sender, status='OPEN')
-        print(msg.count())
         total_unread_messages = msg.count()
         return JsonResponse(generate_response(message='successful', data={'count': total_unread_messages}))
 

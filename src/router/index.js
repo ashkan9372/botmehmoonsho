@@ -5,6 +5,7 @@ import Messages from "@/views/Messages.vue";
 import Winning from "@/views/Winning.vue";
 import Settings from "@/views/Settings.vue";
 import Login from "@/views/Login.vue";
+import Payments from "@/views/Payments.vue";
 
 
 const routes = [
@@ -37,6 +38,11 @@ const routes = [
     path: '/Login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/Payments',
+    name: 'Payments',
+    component: Payments
   }
 ]
 

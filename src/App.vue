@@ -1,6 +1,6 @@
 <template>
     <main class="flex flex-grow overflow-auto bg-gray-100 h-screen">
-        <aside class="fixed top-0 right-0 w-64 h-screen flex flex-col justify-between text-md py-4 font-medium text-gray-900 bg-white border border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        <aside class="font-sans fixed top-0 right-0 w-64 h-screen flex flex-col justify-between text-md py-4 font-medium text-gray-900 bg-white border border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
           <div>
             <router-link to="/" class="flex flex-row gap-4 items-center block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
@@ -9,7 +9,7 @@
                 <span>کاربرها</span>
             </router-link>
             <router-link to="/Messages" class="flex flex-row gap-4 items-center justify-between block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
-                <div class="flex flex-row gap-4 items-center ">
+                <div class="flex flex-row gap-4 items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
                   <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
                 </svg>
@@ -30,6 +30,25 @@
               </svg>
               <span>برنده ها</span>
             </router-link>
+            <router-link to="/Payments" class="flex flex-row gap-4 items-center justify-between block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
+              <div class="flex flex-row gap-4 items-center ">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cash-coin" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M11 15a4 4 0 1 0 0-8 4 4 0 0 0 0 8m5-4a5 5 0 1 1-10 0 5 5 0 0 1 10 0"/>
+                  <path d="M9.438 11.944c.047.596.518 1.06 1.363 1.116v.44h.375v-.443c.875-.061 1.386-.529 1.386-1.207 0-.618-.39-.936-1.09-1.1l-.296-.07v-1.2c.376.043.614.248.671.532h.658c-.047-.575-.54-1.024-1.329-1.073V8.5h-.375v.45c-.747.073-1.255.522-1.255 1.158 0 .562.378.92 1.007 1.066l.248.061v1.272c-.384-.058-.639-.27-.696-.563h-.668zm1.36-1.354c-.369-.085-.569-.26-.569-.522 0-.294.216-.514.572-.578v1.1zm.432.746c.449.104.655.272.655.569 0 .339-.257.571-.709.614v-1.195z"/>
+                  <path d="M1 0a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4.083q.088-.517.258-1H3a2 2 0 0 0-2-2V3a2 2 0 0 0 2-2h10a2 2 0 0 0 2 2v3.528c.38.34.717.728 1 1.154V1a1 1 0 0 0-1-1z"/>
+                  <path d="M9.998 5.083 10 5a2 2 0 1 0-3.132 1.65 6 6 0 0 1 3.13-1.567"/>
+                </svg>
+                <span>پرداخت ها</span>
+              </div>
+              <template v-if="userNewPayments.status">
+                <span class="flex">
+                  <span class="animate-ping absolute inline-flex w-6 h-6 rounded-full bg-green-400 opacity-85"></span>
+                  <div class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-400 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
+                    {{ userNewPayments.count }}
+                  </div>
+                </span>
+              </template>
+            </router-link>
             <router-link to="/Settings" class="flex flex-row gap-4 items-center block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
                   <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
@@ -38,14 +57,88 @@
                 <span>تنظیمات</span>
               </router-link>
           </div>
-          <div>
-            <button @click="Logout" class="flex flex-row gap-4 items-center block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
+          <div class="flex flex-row justify-between">
+            <button @click="Logout" class="flex flex-row gap-4 items-center  block text-red-600 w-full px-4 py-2 border-b border-e border-t border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-red-700">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
                 <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
               </svg>
-              <span>خروج از پنل</span>
+              <span>خروج</span>
             </button>
+            <button @click="onToggle" class="flex flex-row items-center block w-full text-sky-600  px-4 py-2 border-b border-t border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                  <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                </svg>
+                <span>پیام همگانی</span>
+            </button>
+            <!-- Render inside our `<div id="modals"></div>` in index.html -->
+            <Teleport to="body">
+              <transition name="fade">
+              <!-- Show / hide the modal -->
+              <div :class="[isModalVisible? '': 'hidden']">
+                <!-- The backdrop -->
+                <div @click="onToggle" class="fixed inset-0 bg-gray-900 opacity-40"></div>
+
+                <!-- Where the actual content goes -->
+                <div class="fixed inset-0 flex items-center justify-center">
+                  <div class="flex flex-col  max-h-[600px] bg-white rounded-lg shadow dark:bg-gray-700">
+                        <!-- Modal header -->
+                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                                ارسال پیام به همه کاربر ها
+                            </h3>
+                            <button @click="onToggle" type="button" class="font-sans text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                </svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        <!-- Modal body -->
+                        <div class="p-4 font-sans  md:p-5 space-y-4 overflow-auto min-w-full">
+                           <form>
+                           <div class="w-[450px] mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                               <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-gray-800">
+                                   <label for="comment" class="sr-only">پیام خود را برای کاربر بنویسید</label>
+                                   <textarea v-model="sendToAllParams.text" id="comment" rows="4" class="w-full px-0 text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="پیام خود را برای کاربر بنویسید..." required ></textarea>
+                               </div>
+                               <div class="flex items-center justify-between px-3 py-2 border-t dark:border-gray-600">
+                                   <div class="w-45">
+                                     <Button @click="sendToAll">
+                                       <template v-slot:title>
+                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
+                                           <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+                                         </svg>
+                                         <span>ارسال پیام</span>
+                                       </template>
+                                     </Button>
+                                   </div>
+                                   <div class="flex ps-0 space-x-1 rtl:space-x-reverse sm:ps-2">
+                                       <button
+                                           @click="$refs.fileInput.click()"
+                                           type="button" class="inline-flex justify-center items-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+                                           <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+                                              <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z"/>
+                                           </svg>
+                                           <span class="sr-only">Upload image</span>
+                                       </button>
+                                        <input
+                                          type="file"
+                                          ref="fileInput"
+                                          accept="image/*"
+                                          @change="onFilePicked"
+                                          class="hidden"
+                                        />
+                                   </div>
+                               </div>
+                           </div>
+                           </form>
+                        </div>
+                    </div>
+                </div>
+              </div>
+              </transition>
+            </Teleport>
           </div>
         </aside>
 
@@ -59,13 +152,32 @@
 <script>
 import Table from "@/components/table.vue";
 import axios from 'axios';
+import {useToast} from "vue-toastification";
+import Button from "@/components/button.vue";
+import Input from "@/components/input.vue";
+import Modal from "@/components/Modal.vue";
 export default {
+  components: {Modal, Input, Button},
   data() {
     return {
       userUnReadMessages: {
         count: 0,
         status: false
       },
+      userNewPayments: {
+        count: 0,
+        status: false
+      },
+      sendToAllParams: {
+        text: '',
+        image: null
+      },
+      isOpen: false
+    }
+  },
+  computed: {
+    isModalVisible() {
+      return this.isOpen;
     }
   },
   methods: {
@@ -80,17 +192,50 @@ export default {
         });
     },
     unReadMessages(){
-      this.axios.get('/api/totalUnReadMessages', ).then((response) => {
+      this.axios.get('/api/totalUnReadMessagesAndNewPayment', ).then((response) => {
         if(response) {
-          console.log(response.data)
-          this.userUnReadMessages.count = response.data['data']['count']
-          console.log(response.data['data']['count'], typeof response.data['data']['count'])
+          this.userUnReadMessages.count = response.data['data']['total_unread_messages']
+          this.userNewPayments.count = response.data['data']['total_new_payments']
           if (this.userUnReadMessages.count != 0) {
             this.userUnReadMessages.status = true
+          }
+          if (this.userNewPayments.count != 0) {
+            this.userNewPayments.status = true
           }
         }
       })
     },
+    sendToAll(){
+        const params = {
+          "message": this.sendToAllParams.text,
+        };
+        if (this.sendToAllParams.image){
+          this.axios.post('/api/sendToAll', this.sendToAllParams.image, {
+            headers: {
+              'Content-Type': 'multipart/form-data' // Set content type for image upload
+            },
+            params: params
+          }).then((response) => {
+            const toast = useToast();
+            toast.success("پیام شما با موفقیت ارسال شد.");
+          })
+        } else {
+          this.axios.get('/api/sendToAll',{params: params}).then((response) => {
+            const toast = useToast();
+            toast.success("پیام شما با موفقیت ارسال شد.");
+          })
+        }
+    },
+    onFilePicked (event) {
+      const files = event.target.files
+      // Send the image file to the server
+      const image = new FormData();
+      image.append("image", files[0]); // Add image to form data
+      this.sendToAllParams.image = image
+    },
+    onToggle() {
+      this.isOpen = !this.isOpen;
+    }
   },
   mounted() {
     this.unReadMessages()

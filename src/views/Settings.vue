@@ -38,16 +38,16 @@ export default {
       date: {
         start: null,
         end: null,
-        lottery: null
+        lottery: null,
       }
     }
   },
   methods: {
     setDate(){
       let params = {
-        'start': this.date.start,
-        'end': this.date.end,
-        'lottery': this.date.lottery,
+        'start': JSON.stringify(this.date.start),
+        'end': JSON.stringify(this.date.end),
+        'lottery': JSON.stringify(this.date.lottery),
       }
       this.axios.get('/api/setDate', {params:params}).then((response) => {
         toast.success('درخواست شما با موفقیت انجام شد.');
@@ -142,9 +142,9 @@ export default {
             this.payment_card.name = response.data['data'][0]['card_name']
             this.payment_card.number = response.data['data'][0]['card_number']
             this.payment_card.price = response.data['data'][0]['price']
-            this.date.start = response.data['data'][0]['start_time']
-            this.date.end = response.data['data'][0]['end_time']
-            this.date.lottery = response.data['data'][0]['lottery_time']
+            // this.date.start = response.data['data'][0]['start_time']
+            // this.date.end = response.data['data'][0]['end_time']
+            // this.date.lottery = response.data['data'][0]['lottery_time']
           }
       })
     },
@@ -186,6 +186,16 @@ export default {
           toast.success('قرعه کشی با موفقیت پایان یافت');
       })
     },
+    dateStart(event){
+      console.log(event)
+      this.date.start = event
+    },
+    dateEnd(event){
+      this.date.end = event
+    },
+    dateLottery(event){
+      this.date.lottery = event
+    }
   },
   mounted() {
     this.getSettings()
@@ -220,9 +230,6 @@ export default {
                 </th>
                 <td class="px-6 py-4">
                     {{ row['user_id'] }}
-                </td>
-                <td class="px-6 py-4">
-                    {{ row['login_code'] }}
                 </td>
                 <td class="px-6 py-4">
                     <a @click="removeAdmin(row['id'])" href="#" class="font-medium text-green-600 dark:text-green-500 hover:underline">عزل</a>
@@ -312,17 +319,19 @@ export default {
     <main class="flex flex-col gap-2 bg-white w-100 p-4 rounded-lg">
       <div class="flex flex-row items-end gap-4">
         <div class="flex flex-col">
-          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">شروع ثبت نام:</h5>
-          <DatePicker></DatePicker>
+<!--          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">شروع ثبت نام:</h5>-->
+          <DatePicker @update="dateStart" :date="[0, '12:00']" btnTitle="شروع ثبت نام" modalTitle="شروع ثبت نام"></DatePicker>
 <!--          <date-picker v-model="date.start" type="datetime"></date-picker>-->
         </div>
         <div class="flex flex-col">
-          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">پایان ثبت نام:</h5>
-          <date-picker v-model="date.end" type="datetime"></date-picker>
+<!--          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">پایان ثبت نام:</h5>-->
+<!--          <date-picker v-model="date.end" type="datetime"></date-picker>-->
+          <DatePicker @update="dateEnd" btnTitle="پایان ثبت نام" modalTitle="پایان ثبت نام"></DatePicker>
         </div>
         <div class="flex flex-col">
-          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">زمان قرعه کشی:</h5>
-          <date-picker v-model="date.lottery" type="datetime"></date-picker>
+<!--          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">زمان قرعه کشی:</h5>-->
+<!--          <date-picker v-model="date.lottery" type="datetime"></date-picker>-->
+          <DatePicker @update="dateLottery" btnTitle="زمان قرعه کشی" modalTitle="زمان قرعه کشی"></DatePicker>
         </div>
 
       </div>
