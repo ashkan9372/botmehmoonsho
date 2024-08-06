@@ -114,7 +114,7 @@ def start(message):
         username = message.chat.username
         user_id = message.chat.id
         status = 'Registering'
-        user_info = Profile.objects.create(full_name=full_name, username=username, user_id=user_id, picture=filename, login_code=login_code, status=status)
+        user_info = Profile.objects.create(full_name=full_name, username=username, user_id=user_id, picture=filename, status=status)
 
         welcome_message = f"""سلام رفیق گل! ‍♀️‍♂️به {Bold('ربات مهمونشو')} خوش اومدی! اینجا یه جای باحالِ پر از آدمای باحالِ خوش‌گذرانِ دوست‌داشتنیه! هر هفته یه {Bold('قرعه‌کشی خفن')} داریم که برنده‌ها باید با جایزه‌شون دوستاشون رو مهمون کنن! فقط کافیه یه {Bold('کد معرفی')} از یکی از اعضای ربات بگیری و عضو شی تا تو هم تو این جمع باحال باشی! {Bold('منتظرتیم!')}"""
         message.answer(welcome_message)
