@@ -285,8 +285,15 @@ def lottery(message):
                 elif lottery.status == "Registered" and lottery.payment_status == 'PAID':
                     path_file = lottery.ticket_picture.url[1:]
                     lottery_time = cnv_date(lottery_time)
-                    text = 'شما قبلا ثبت نام کرده اید, منتظر تایید ادمین باشید.'
-                    text = text + '\n' + f'زمان قرعه کشی:{lottery_time}'
+                    msg = 'بلیط شما صادر شده.'
+                    friends_name = []
+                    for friend in lottery.friends.all():
+                        name = friend.enter_name
+                        friends_name.append(name)
+                    friendList = INIsection(Bold('دوستان انتخاب شده'), friends_name)
+                    game_name = INIsection(Bold('فعالیت انتخاب شده'), lottery.game.name)
+                    lottery_time = f'زمان قرعه کشی:{lottery_time}'
+                    text = msg + '\n' + friendList + '\n' + game_name + '\n' + lottery_time
                     sendPhoto(chat_id=message.chat.id, photo=InputFile(path_file), caption=text)
             if created or lottery.status == "Registering":
                 try:
