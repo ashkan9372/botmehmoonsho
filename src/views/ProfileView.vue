@@ -253,6 +253,16 @@ export default {
 </script>
 
 <template>
+  <button
+    @click="$emit('sidebarOpen', false)"
+    type="button"
+    class="bottom-10 left-5 bg-blue-500 font-sans text-white hover:bg-gray-200 rounded-full text-sm w-8 h-8 ms-auto inline-flex justify-center items-center absolute left-0 mx-2">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-menu-button" viewBox="0 0 16 16">
+      <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h8A1.5 1.5 0 0 1 11 1.5v2A1.5 1.5 0 0 1 9.5 5h-8A1.5 1.5 0 0 1 0 3.5zM1.5 1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5z"/>
+      <path d="m7.823 2.823-.396-.396A.25.25 0 0 1 7.604 2h.792a.25.25 0 0 1 .177.427l-.396.396a.25.25 0 0 1-.354 0M0 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm1 3v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2zm14-1V8a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2zM2 8.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5"/>
+    </svg>
+    <span class="sr-only">open menu</span>
+  </button>
   <div class="flex flex-col gap-2 w-1/2">
     <Input @update="datum['enter_id']=$event" title="یورنیم" :value="datum['enter_id']" />
     <Input @update="datum['enter_name']=$event" title="نام و نام خانوادگی" :value="datum['enter_name']" />
@@ -270,7 +280,7 @@ export default {
               </template>
               <template v-slot:body>
                 <template v-for="row in friendsDatum">
-                  <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                       <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
                           <img class="w-10 h-10 rounded-full" :src="row['picture']" alt="Jese image">
                           <div class="ps-3">
@@ -297,9 +307,7 @@ export default {
         </template>
       </Modal>
     </div>
-<!--    <Input title="کدی که باهاش وارد شده" :value="datum['login_code']" disabled/>-->
-<!--    <Input @update="datum['referral_code']=$event" title="کد مصرف خودش" :value="datum['referral_code']" />-->
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-col md:flex-row gap-2">
     <div class="w-48">
       <Modal @modalOpened='modalHandlerLotteryProfile' btn-title="قرعه کشی" modal-title="لیست قرعه کشی های شرکت کرده">
         <template v-slot:modalBody>
@@ -313,7 +321,7 @@ export default {
               </template>
               <template v-slot:body>
                 <template v-for="row in lotteryDatum">
-                  <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                       <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
                           {{ row['register_date'] }}
                       </th>
@@ -371,7 +379,7 @@ export default {
               </template>
               <template v-slot:body>
                 <template v-for="row in messagesDatum">
-                  <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     <th class="px-6 py-4 max-w-[400px] ">
                       <template v-if="row['sender_picture']">
                         <div class="flex flex-row items-start gap-2">
@@ -486,7 +494,7 @@ export default {
               </template>
               <template v-slot:body>
                 <template v-for="row in winningDatum">
-                  <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                       <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
                           {{ row['register_date'] }}
                       </th>
@@ -561,7 +569,7 @@ export default {
       </Modal>
     </div>
     </div>
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-col md:flex-row gap-2">
       <Button @click="deleteProfile" class="bg-red-600 hover:bg-red-800 focus:ring-red-300"><template v-slot:title>حذف کاربر</template></Button>
       <Button @click="recordChanges" class="bg-green-600 hover:bg-green-800 focus:ring-green-300"><template v-slot:title>ثبت تغییرات</template></Button>
       <router-link :to="prevPageRoute" ><Button><template v-slot:title>بازگشت</template></Button></router-link>

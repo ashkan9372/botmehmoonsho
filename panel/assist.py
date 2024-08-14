@@ -5,6 +5,7 @@ import jdatetime
 from PIL import ImageFont, Image, ImageDraw
 from django.conf import settings
 import re
+from monogram.text import *
 
 def generate_uid():
 	return str(uuid.uuid4()).split("-")[0]
@@ -92,56 +93,58 @@ def convert_date(date):
         shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
         # Update the field in the dictionary
         return shamsi_date.strftime('%Y-%m-%d %H:%M')
-def timeValidation(start_time, end_time):
-    """
-    Checks if the current Jalali datetime (adjusted for a specific time zone)
-    falls within the provided start and end times (inclusive) for a lottery registration period.
 
-    Args:
-        start_time (datetime.datetime): Start time of the lottery registration period.
-        end_time (datetime.datetime): End time of the lottery registration period.
-
-    Returns:
-        tuple: (bool, str)
-            - bool: True if current time is within the registration period, False otherwise.
-            - str: Message indicating the validation status and current time information.
-    """
-
+def timeValidation(start_datetime, end_datetime, setting):
     try:
+        current_time = jdatetime.datetime.now()
+        # Convert to Jalali datetime objects
+        shamsi_start_time = jdatetime.datetime.fromgregorian(datetime=start_datetime)
+        shamsi_end_time = jdatetime.datetime.fromgregorian(datetime=end_datetime)
+        if shamsi_start_time > shamsi_end_time:
+            shamsi_start_time = shamsi_start_time - jdatetime.timedelta(days=7)
+        # print('start time is: ', shamsi_start_time, 'day of week is:', shamsi_start_time.weekday())
+        # print('end time is: ', shamsi_end_time, 'day of week is:', shamsi_end_time.weekday())
+        # print('currnet time is: ', current_time, 'day of week is:', current_time.weekday())
+        # # Check if the current date is within the registration period
+        # print(start_time,current_time,end_time)
+        # print(shamsi_start_time , current_time , shamsi_end_time)
+        # print(shamsi_start_time <= current_time <= shamsi_end_time)
+        # print(shamsi_start_time.weekday(), current_time.weekday(), shamsi_end_time.weekday(), shamsi_start_time.weekday() <= current_time.weekday() <= shamsi_end_time.weekday())
+        st = jdatetime.datetime(year=current_time.year, month=current_time.month, day=shamsi_start_time.day, hour=shamsi_start_time.hour, minute=shamsi_start_time.minute)
+        et = jdatetime.datetime(year=current_time.year, month=current_time.month, day=shamsi_end_time.day, hour=shamsi_end_time.hour, minute=shamsi_end_time.minute)
+        # print(st, current_time, et, st<= current_time<= et)
 
-        start_time = convert_date(start_time)
-        end_time = convert_date(end_time)
-        print(start_time, end_time)
-        start_time = jdatetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M")
-        end_time = jdatetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M")
-
-        # Get current UTC time and apply time zone offset
-        now = jdatetime.datetime.utcnow()
-        time_zone = jdatetime.timedelta(hours=3, minutes=30)  # Adjust for your local time zone
-        current_time = now + time_zone
-
-        # Check conditions and generate messages
-        if start_time > current_time:
-            msg = "زمان ثبت نام در قرعه کشی هنوز شروع نشده."
-            return False, msg
-        elif end_time < current_time:
-            msg = "زمان ثبت نام در قرعه کشی به پایان رسیده."
-            return False, msg
-        else:
+        if shamsi_start_time.weekday() <= current_time.weekday() <= shamsi_end_time.weekday() and st<= current_time<= et:
             msg = "زمان ثبت نام در قرعه کشی فرا رسیده."
             return True, msg
+        else:
+            days_of_week = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
 
-    except TypeError as e:
-        # Handle TypeError specifically
-        error_msg = f"Invalid data types for start_time and end_time: {e}"
-        print(error_msg)
-        return False, ""
+            def conver_to_shamsi(date):
+                shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
+                return shamsi_date
 
-    except Exception as e:  # Catch other exceptions more generally
-        # Handle other exceptions generically
-        error_msg = f"An error occurred during time validation: {e}"
-        print(error_msg)
-        return False, ""
+            shamsi_start_time = conver_to_shamsi(setting.start_time)
+            start_time = {
+                'day': days_of_week[shamsi_start_time.weekday()],
+                'time': shamsi_start_time.strftime('%H:%M')
+            }
+            shamsi_end_time = conver_to_shamsi(setting.end_time)
+            end_time = {
+                'day': days_of_week[shamsi_end_time.weekday()],
+                'time': shamsi_end_time.strftime('%H:%M')
+            }
+            shamsi_lottery_time = conver_to_shamsi(setting.lottery_time)
+            lottery_time = {
+                'day': days_of_week[shamsi_lottery_time.weekday()],
+                'time': shamsi_lottery_time.strftime('%H:%M')
+            }
+            msg = f"{Bold('زمان ثبت نام در قرعه کشی هنوز شروع نشده.')} ثبت نام در قرعه کشی هر هفته از روز {Bold(start_time['day'])} ساعت {Bold(start_time['time'])} شروع میشه وروز {Bold(end_time['day'])} ساعت {Bold(end_time['time'])} تمام میشه و زمان قرعه کشیو اعالم برنده هاروز {Bold(lottery_time['day'])} ساعت {Bold(lottery_time['time'])} می باشد"
+            return False, msg
+
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return False, "خطایی رخ داده است."
 
 
 def keyboard_generator(my_list):

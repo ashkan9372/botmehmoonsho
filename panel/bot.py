@@ -31,8 +31,49 @@ main_keyboard = [
     ],
 ]
 
+def invietfrend(message, friends_id):
+    # invite link:
+    try:
+        profile = Profile.objects.get(user_id=message.chat.id)
+        friend_profile = Profile.objects.get(id=friends_id)
+        # Check if a friendship already exists between these two users
+        friendship, created = profileFriend.objects.get_or_create(
+            from_user=profile,
+            to_user=friend_profile,
+            defaults={"status": 'Pending'},
+        )
+        keyboard = [
+            [
+                InlineKeyboardButton("✅ تایید",
+                                     callback_data=f"acceptFriend-{friend_profile.user_id}-nousername"),
+                InlineKeyboardButton("❌ رد",
+                                     callback_data=f"cancelFriend-{friend_profile.user_id}-nousername"),
+            ]
+        ]
+        keyboard = InlineKeyboardMarkup(keyboard)
+        # if created send request to user
+        if created:
+            # Check if friend is already in user's friend list
+            text = f"شما از لینک دعوت به دوستی کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} استفاده کردین.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+            message.reply(text=text, keyboard=keyboard)
+        # If the friendship already exists, update the status
+        if not created:
+            if friendship.status == 'Pending':
+                text = f"کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} قبلا برای شما درخواست دوستی فرسستاده! از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
+                message.reply(text=text, keyboard=keyboard)
+            if friendship.status == 'Accepted':
+                text = f"در حال حاظر کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} در لیست دوستان شما قرار دارد."
+                message.reply(text=text)
+
+    except Profile.DoesNotExist:
+        text = 'هیچ کاربری با این نام کاربری در سیستم وجود ندارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
+        keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
+        keyboard = InlineKeyboardMarkup(keyboard)
+        message.reply(text=text, keyboard=keyboard)
+
 @bot.newMessage(pattern=r'^/start')
 def start(message):
+    print(message.text)
     p = getUserProfile(user_id=message.chat.id)
     # print(p)
     p = UserProfilePhotos(**p['result'])
@@ -46,49 +87,13 @@ def start(message):
         pic = bot.download_file(filename=filename, dir_path='media/img/profile_pictures', file_path=file_path)
         # print(filename)
     try:
+        user_info = Profile.objects.get(user_id=message.chat.id)
         # invite link:
-        msg = message.text.split()
-        if len(msg) > 1:
-            friends_id = msg[1]
-            try:
-                profile = Profile.objects.get(user_id=message.chat.id)
-                friend_profile = Profile.objects.get(id=friends_id)
-                # Check if a friendship already exists between these two users
-                friendship, created = profileFriend.objects.get_or_create(
-                    from_user=profile,
-                    to_user=friend_profile,
-                    defaults={"status": 'Pending'},
-                )
-                keyboard = [
-                    [
-                        InlineKeyboardButton("✅ تایید",
-                                             callback_data=f"acceptFriend-{friend_profile.user_id}-nousername"),
-                        InlineKeyboardButton("❌ رد",
-                                             callback_data=f"cancelFriend-{friend_profile.user_id}-nousername"),
-                    ]
-                ]
-                keyboard = InlineKeyboardMarkup(keyboard)
-                # if created send request to user
-                if created:
-                    # Check if friend is already in user's friend list
-                    text = f"شما از لینک دعوت به دوستی کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} استفاده کردین.از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
-                    message.reply(text=text, keyboard=keyboard)
-                # If the friendship already exists, update the status
-                if not created:
-                    if friendship.status == 'Pending':
-                        text = f"کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} قبلا برای شما درخواست دوستی فرسستاده! از دکمه زیر برای تایید درخواست استفاده کنید.{Bold('توجه داشته باشد بعد از تایید به لیست دوستان یکدیگر اضافه میشوید.')}"
-                        message.reply(text=text, keyboard=keyboard)
-                    if friendship.status == 'Accepted':
-                        text = f"در حال حاظر کاربری با نام {friend_profile.enter_name} و نام کاربری {friend_profile.enter_id} در لیست دوستان شما قرار دارد."
-                        message.reply(text=text)
-
-            except Profile.DoesNotExist:
-                text = 'هیچ کاربری با این نام کاربری در سیستم وجود ندارد\nیک نام کاربری دیگر را وارد کنید یا دکمه بازگشت را برای لفو عملیات بزنید.'
-                keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
-                keyboard = InlineKeyboardMarkup(keyboard)
-                message.reply(text=text, keyboard=keyboard)
+        callback_data = message.text.split()
+        if len(callback_data) > 1:
+            firend_id = callback_data[1]
+            invietfrend(message=message, friends_id=firend_id)
         else:
-            user_info = Profile.objects.get(user_id=message.chat.id)
             text = 'سلام دوباره! خیلی خوشحالیم که به جمع ما برگشتی.'
             keyboard = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
             message.answer(text, keyboard=keyboard)
@@ -104,7 +109,6 @@ def start(message):
                 message.answer(text)
 
     except Profile.DoesNotExist:
-
         first_name = message.chat.first_name
         last_name = message.chat.last_name
         first_name = first_name if first_name else ''
@@ -116,17 +120,28 @@ def start(message):
         status = 'Registering'
         user_info = Profile.objects.create(full_name=full_name, username=username, user_id=user_id, picture=filename, status=status)
 
-        welcome_message = f"""سلام رفیق گل! ‍♀️‍♂️به {Bold('ربات مهمونشو')} خوش اومدی! اینجا یه جای باحالِ پر از آدمای باحالِ خوش‌گذرانِ دوست‌داشتنیه! هر هفته یه {Bold('قرعه‌کشی خفن')} داریم که برنده‌ها باید با جایزه‌شون دوستاشون رو مهمون کنن! فقط کافیه یه {Bold('کد معرفی')} از یکی از اعضای ربات بگیری و عضو شی تا تو هم تو این جمع باحال باشی! {Bold('منتظرتیم!')}"""
+        welcome_message = f"""سلام رفیق گل! ‍♀️‍♂️به {Bold('ربات مهمونشو')} خوش اومدی! اینجا یه جای باحالِ پر از آدمای باحالِ خوش‌گذرانِ دوست‌داشتنیه! هر هفته یه {Bold('قرعه‌کشی خفن')} داریم که برنده‌ها باید با جایزه‌شون دوستاشون رو مهمون کنن! فقط کافیه عضو شی تا تو هم تو این جمع باحال باشی! {Bold('منتظرتیم!')}"""
         message.answer(welcome_message)
 
         if user_info.enter_name == None:
             c = Conversation(user_id=message.chat.id)
             c.create(callback_data='enter_name')
+            msg = message.text.split()
+            if len(msg) > 1:
+                friends_id = msg[1]
+                c.create(callback_data=f'enter_name-{friends_id}')
+            else:
+                c.create(callback_data='enter_name')
             text = '👤 نام و نام خانوادگی خود را به حروف فارسی وارد کنید, توجه داشته باشید که این نام باید مطابق با نام و نام خانوادگی درج شده روی کارت بانکی شما باشد:'
             message.answer(text)
         if user_info.enter_name != None and user_info.enter_id == None:
             c = Conversation(user_id=message.chat.id)
-            c.create(callback_data='enter_id')
+            msg = message.text.split()
+            if len(msg) > 1:
+                friends_id = msg[1]
+                c.create(callback_data=f'enter_id-{friends_id}')
+            else:
+                c.create(callback_data='enter_id')
             text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
             message.answer(text)
 
@@ -241,7 +256,7 @@ def lottery(message):
     end_time = setting.end_time
     lottery_time = setting.lottery_time
 
-    status, msg = timeValidation(start_time, end_time)
+    status, msg = timeValidation(start_time, end_time, setting)
     if status:
         try:
             # Get the profile by ID
@@ -711,18 +726,31 @@ def any(message):
     conv = Conversation(message.chat.id)
     data = conv.data()
     print('conversations:', data)
+    # print('callback_data is: ', data['callback_data'])
+
     if data and (filter_message(message)==False):
-        if data['callback_data'] == 'enter_name':
+        if 'enter_name' in data['callback_data']:
             if is_persian_name(message.text):
-                profile = Profile.objects.get(user_id=message.chat.id)
-                profile.enter_name = message.text
-                profile.save()
-                conv.change_callback_data(callback_data='enter_id')
-                text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
-                message.answer(text)
+                try:
+                    profile = Profile.objects.get(user_id=message.chat.id)
+                    profile.enter_name = message.text
+                    profile.save()
+
+                    callback_data = data['callback_data'].split('-')
+                    if len(callback_data) > 1:
+                        friends_id = callback_data[1]
+                        conv.change_callback_data(callback_data=f'enter_id-{friends_id}')
+                    else:
+                        conv.change_callback_data(callback_data='enter_id')
+
+                    text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+                    message.answer(text)
+                except Profile.DoesNotExist:
+                    pass
             else:
                 message.answer(f"خطا! لطفا نام و نام خانوادگی خود را با {Bold('حروف فارسی')} وارد کنید")
-        if data['callback_data'] == 'enter_id':
+
+        if 'enter_id' in data['callback_data']:
             text_status, msg = is_valid_username(message.text)
             if text_status:
                 try:
@@ -742,8 +770,15 @@ def any(message):
                             KeyboardButton('🤖 آموزش ربات'),
                         ],
                     ]
-                    keyboard = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+                    keyboard = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
                     message.answer(text, keyboard=keyboard)
+
+                    # invite link:
+                    callback_data = data['callback_data'].split('-')
+                    if len(callback_data) > 1:
+                        firend_id = callback_data[1]
+                        invietfrend(message=message, friends_id=firend_id)
+
                 except IntegrityError:
                     text = 'نام کاربری وارد شده در سیستم وجود دارد. یک نام کاربری دیگر را تست کنید.'
                     message.answer(text)

@@ -1,6 +1,15 @@
 <template>
     <main class="flex flex-grow overflow-auto bg-gray-100 h-screen">
-        <aside class="font-sans fixed top-0 right-0 w-64 h-screen flex flex-col justify-between text-md py-4 font-medium text-gray-900 bg-white border border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        <transition name="slide-fade">
+<!--          max-sm:hidden -->
+        <aside :class="[isMenuHidden? 'hidden':'']" class="flex flex-col justify-between font-sans fixed top-0 right-0 z-40 sm:w-64 h-screen py-4 text-md font-medium text-gray-900 bg-white border border-gray-200">
+          <button @click="isMenuHidden=!isMenuHidden" type="button"
+                  class="font-sans text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center absolute left-0 mx-2">
+              <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+              </svg>
+              <span class="sr-only">Close modal</span>
+          </button>
           <div>
             <router-link to="/" class="flex flex-row gap-4 items-center block w-full px-4 py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
@@ -58,14 +67,14 @@
               </router-link>
           </div>
           <div class="flex flex-row justify-between">
-            <button @click="Logout" class="flex flex-row gap-4 items-center  block text-red-600 w-full px-4 py-2 border-b border-e border-t border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-red-700">
+            <button @click="Logout" class="flex flex-row gap-4 items-center justify-center block text-red-600 w-full px-4 py-2 border-b border-e border-t border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-red-700">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
                 <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
               </svg>
               <span>خروج</span>
             </button>
-            <button @click="onToggle" class="flex flex-row items-center block w-full text-sky-600  px-4 py-2 border-b border-t border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
+            <button @click="onToggle" class="truncate flex flex-row justify-center items-center  w-full text-sky-600 px-4 py-2 border-b border-t border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
                   <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
                 </svg>
@@ -141,16 +150,21 @@
             </Teleport>
           </div>
         </aside>
+        </transition>
 
-        <div class="sm:mr-64 flex flex-col flex-grow gap-2 px-4 py-2 min-w-1">
-            <router-view/>
+        <div :class="[isMenuHidden? '':'sm:mr-64']" class="flex flex-col flex-grow gap-2 px-4 py-2 min-w-1">
+
+          <transition name="fade" mode="out-in">
+            <router-view
+                @sidebarOpen="isMenuHidden=false;"
+            />
+          </transition>
         </div>
     </main>
 
 </template>
 
 <script>
-import Table from "@/components/table.vue";
 import axios from 'axios';
 import {useToast} from "vue-toastification";
 import Button from "@/components/button.vue";
@@ -172,7 +186,8 @@ export default {
         text: '',
         image: null
       },
-      isOpen: false
+      isOpen: false,
+      isMenuHidden:false
     }
   },
   computed: {

@@ -206,6 +206,17 @@ export default {
 </script>
 
 <template>
+<button
+  @click="$emit('sidebarOpen', false)"
+  type="button"
+  class="bottom-10 left-5 bg-blue-500 font-sans text-white hover:bg-gray-200 rounded-full text-sm w-8 h-8 ms-auto inline-flex justify-center items-center absolute left-0 mx-2">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-menu-button" viewBox="0 0 16 16">
+    <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h8A1.5 1.5 0 0 1 11 1.5v2A1.5 1.5 0 0 1 9.5 5h-8A1.5 1.5 0 0 1 0 3.5zM1.5 1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5z"/>
+    <path d="m7.823 2.823-.396-.396A.25.25 0 0 1 7.604 2h.792a.25.25 0 0 1 .177.427l-.396.396a.25.25 0 0 1-.354 0M0 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm1 3v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2zm14-1V8a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2zM2 8.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5"/>
+  </svg>
+  <span class="sr-only">open menu</span>
+</button>
+
 <div class="flex flex-col gap-2">
 <!--  admins-->
   <main class="flex flex-col gap-2 bg-white w-100 p-4 rounded-lg">
@@ -216,7 +227,7 @@ export default {
     <main class="flex flex-col gap-2">
       <Table>
         <template v-slot:head>
-          <template v-for="head in ['اسم','آیدی عددی', 'لاگین کد','عزل']">
+          <template v-for="head in ['اسم','آیدی عددی','عزل']">
             <th scope="col" class="px-6 py-3">
               {{ head }}
             </th>
@@ -238,7 +249,7 @@ export default {
           </template>
         </template>
       </Table>
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-col md:flex-row gap-2">
         <Input @update="admin['name']=$event" title="اسم ادمین" />
         <Input @update="admin['id']=$event" title="آیدی عددی ادمین" />
         <fwb-button @click="addAdmin">اضافه کردن</fwb-button>
@@ -273,7 +284,7 @@ export default {
           </template>
         </template>
       </Table>
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-col md:flex-row gap-2">
         <Input @update="game=$event" title="اسم بازی" />
         <fwb-button @click="addGame">اضافه کردن</fwb-button>
       </div>
@@ -287,12 +298,12 @@ export default {
     </header>
     <main class="flex flex-col gap-2">
       <div class="flex flex-col gap-2 justify-start w-1/2">
-        <Input @update="payment_card['number']=$event" title="شماره کارت" :disabled="payment_card['edit']" :value="payment_card['number']"/>
-        <Input @update="payment_card['name']=$event" title="نام و نام حانوادگی درج شده روی کارت" :disabled="payment_card['edit']" :value="payment_card['name']"/>
+        <Input @update="payment_card['number']=$event" title="شماره کارت:" :disabled="payment_card['edit']" :value="payment_card['number']"/>
+        <Input @update="payment_card['name']=$event" title="نام و نام حانوادگی درج شده روی کارت:" :disabled="payment_card['edit']" :value="payment_card['name']"/>
         <Input @update="payment_card['price']=$event" title="مبلغ قرعه کشی (تومان):" :disabled="payment_card['edit']" :value="payment_card['price']"/>
 
         <div class="">
-          <h1 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">روش پرداخت</h1>
+          <h1 class="mb-2 sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">روش پرداخت</h1>
           <div class="flex items-center mb-4">
             <input type="radio" id="default-radio-1" value="card-to-card" v-model="selectedPaymentMethod" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
             <label for="default-radio-1" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">کارت به کارت</label>
@@ -317,7 +328,7 @@ export default {
       <p class="font-normal text-gray-700 dark:text-gray-400">در این قسمت تاریخ و زمان قرعه کشی را می توانید تنظیم کنید.</p>
     </header>
     <main class="flex flex-col gap-2 bg-white w-100 p-4 rounded-lg">
-      <div class="flex flex-row items-end gap-4">
+      <div class="flex flex-col md:flex-row md:items-end gap-4">
         <div class="flex flex-col">
 <!--          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">شروع ثبت نام:</h5>-->
           <DatePicker @update="dateStart" :date="[0, '12:00']" btnTitle="شروع ثبت نام" modalTitle="شروع ثبت نام"></DatePicker>
@@ -335,7 +346,7 @@ export default {
         </div>
 
       </div>
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-col md:flex-row  gap-2">
         <fwb-button @click="setDate">ثبت کردن</fwb-button>
         <fwb-button @click="generateExcel">دریافت فایل اکسل</fwb-button>
         <fwb-button @click="endLottery">پایان قرعه کشی</fwb-button>
@@ -349,7 +360,7 @@ export default {
       <p class="font-normal text-gray-700 dark:text-gray-400">این قسمت مربوط به کانال است در این قست آیدی عددی/یوزر آیدی(همراه با '@') کانال را وارد کرده.توجه داشته باشید که ابتدا ربات را عضو کنال خود کنید</p>
     </header>
     <main class="flex flex-col gap-2">
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-col md:flex-row gap-2">
         <Input @update="settingsDatum['channel']=$event" title="آیدی کانال" :value="settingsDatum['channel']"/>
         <Input @update="settingsDatum['link']=$event" title="لینک ویدیو آموژش" :value="settingsDatum['link']"/>
         <fwb-button @click="updateChannelSettings">ثبت کردن</fwb-button>

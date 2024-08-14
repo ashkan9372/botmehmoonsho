@@ -1,17 +1,6 @@
 <script>
 import Button from "@/components/button.vue";
 
-// export default {
-//   name: "Dropdown",
-//   components: {Button},
-//   props:['title', 'options'],
-//   data(){
-//     return{
-//       hidden: false,
-//     }
-//   }
-// }
-
 export default {
 
   name: "Dropdown",
@@ -62,7 +51,7 @@ export default {
       >
         <ul
           v-show="isOptionsExpanded"
-          class="absolute mb-4 overflow-hidden bg-green-400 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700"
+          class="absolute mb-4 overflow-hidden bg-green-400 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 z-50"
         >
           <li
             v-for="(option, index) in options"

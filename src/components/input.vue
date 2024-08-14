@@ -53,15 +53,14 @@ export default {
 </script>
 
 <template>
- <div :class="[hidden ? 'hidden':'flex flex-row gap-2 items-center justify-center']">
+ <div :class="[hidden ? 'hidden':'flex flex-col md:flex-row gap-2 items-center justify-center']">
 
     <label
-        for="first_name"
         :for="formName"
         :class="[
           error ? 'peer-focus:text-red-500 text-red-500' : 'peer-focus:text-green-500 text-gray-500'
         ]"
-        class="text-nowrap mb-2 text-md font-medium text-gray-900 dark:text-white">{{ title }}</label>
+        class="md:text-nowrap mb-2 text-md font-medium font-semibold text-gray-900 dark:text-white">{{ title }}</label>
     <input
         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         v-model="inputValue"

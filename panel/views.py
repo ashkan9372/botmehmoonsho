@@ -18,7 +18,7 @@ def convert_date(date):
         # Convert to Shamsi date
         shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
         time_zone = jdatetime.timedelta(hours=3, minutes=30)
-        # shamsi_date = shamsi_date + time_zone
+        shamsi_date = shamsi_date + time_zone
         # Update the field in the dictionary
         return shamsi_date.strftime('%H:%M %Y/%m/%d')
     else:
@@ -686,40 +686,16 @@ def sendMessageWithImageToWinner(request):
         return JsonResponse({'error': 'Invalid request method'})
 
 
-def adjust_date(date_string):
-    from datetime import datetime
-    """
-    این تابع یک تاریخ به فرمت 'YYYY/MM/DD HH:MM' دریافت می کند.
-    اگر روز تاریخ ورودی گذشته باشد، روز آن را به هفته بعد تنظیم می کند.
-
-    :param date_string: تاریخ ورودی به فرمت رشته
-    :return: تاریخ تنظیم شده به صورت شیء datetime
-    """
-
-    # تبدیل رشته تاریخ به شیء datetime
-    date_obj = datetime.strptime(date_string, '%Y/%m/%d %H:%M')
-    # بررسی اینکه آیا تاریخ ورودی از تاریخ امروز گذشته است یا خیر
-    if date_obj.date() < datetime.now().date():
-        # اضافه کردن یک هفته به تاریخ
-        date_obj += datetime.timedelta(days=7)
-
-    return date_obj
-
-
 def setDate(request):
+    import datetime
     start = json.loads(request.GET.get('start'))
-    print(start)
-    start = adjust_date(start)
-    print(start)
     end = json.loads(request.GET.get('end'))
-    end = adjust_date(end)
     lottery = json.loads(request.GET.get('lottery'))
-    lottery = adjust_date(lottery)
     try:
         setting = Setting.objects.get(id=1)
-        setting.start_time = start
-        setting.end_time = end
-        setting.lottery_time = lottery
+        setting.start_time = datetime.datetime.strptime(start, "%Y/%m/%d %H:%M")
+        setting.end_time = datetime.datetime.strptime(end, "%Y/%m/%d %H:%M")
+        setting.lottery_time = datetime.datetime.strptime(lottery, "%Y/%m/%d %H:%M")
         setting.save()
         return JsonResponse(generate_response(message='successful'))
     except Profile.DoesNotExist:

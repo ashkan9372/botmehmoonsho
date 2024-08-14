@@ -38,11 +38,11 @@ export default {
       <!-- Show / hide the modal -->
       <div :class="[isModalVisible? '': 'hidden']">
         <!-- The backdrop -->
-        <div @click="onToggle" class="fixed inset-0 bg-gray-900 opacity-40"></div>
+        <div @click="onToggle" class="fixed inset-0 z-50 bg-gray-900 opacity-40"></div>
 
         <!-- Where the actual content goes -->
-        <div class="fixed inset-0 flex items-center justify-center">
-          <div class="flex flex-col  max-h-[600px] bg-white rounded-lg shadow dark:bg-gray-700">
+        <div class="fixed inset-0 flex items-center z-50 justify-center">
+          <div class="flex flex-col max-h-[600px] bg-white rounded-lg shadow dark:bg-gray-700">
                 <!-- Modal header -->
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -56,7 +56,7 @@ export default {
                     </button>
                 </div>
                 <!-- Modal body -->
-                <div class="p-4 font-sans  md:p-5 space-y-4 overflow-auto min-w-full">
+                <div class="font-sans md:p-5 space-y-4 overflow-auto max-sm:w-[250px] md:min-w-full">
                   <slot name="modalBody"></slot>
                 </div>
                 <!-- Modal footer -->

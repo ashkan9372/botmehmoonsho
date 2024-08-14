@@ -12,13 +12,13 @@ import re
 
 def is_command(message):
   try:
-      print('msggggg:', message.photo, message.text)
+      # print('msggggg:', message.photo, message.text)
       text = message.text or message.caption
       if text:
           patterns = ['^/start', '📢 مشاهده کانال', '📤 ارسال لینک دعوت', '👤 ویرایش اطلاعات', '👥 لیست دوستان', '🤖 آموزش ربات', '☎ پشتیبانی', '🎟 قرعه‌کشی', '📊 آمار و ارقام', '📚 اطلاعات قرعه کشی', '/invite']
           for pattern in patterns:
               match = re.match(pattern, message.text)
-              print('match is:',pattern,message.text, match, bool(match))
+              # print('match is:',pattern,message.text, match, bool(match))
               if match:
                   return True
           return False
@@ -47,14 +47,14 @@ def check_regester(message):
         conv = Conversation(message.chat.id)
         data = conv.data()
         regestering = data['callback_data'] == 'login' or data['callback_data'] == 'enter_name' or data['callback_data'] == 'enter_id' if data else None
-        print(data, regestering)
+        # print(data, regestering)
 
         try:
             user = Profile.objects.get(user_id=message.chat.id)
             if user.status != 'Registered':
-                print('state 1:UNRegistered', regestering, is_command(message))
+                # print('state 1:UNRegistered', regestering, is_command(message))
                 if regestering and (is_command(message)):
-                    print('state 1:regestering')
+                    # print('state 1:regestering')
                     user_info = Profile.objects.get(user_id=message.chat.id)
                     if user_info.enter_name == None:
                         c = Conversation(user_id=message.chat.id)
@@ -72,7 +72,7 @@ def check_regester(message):
             else:
                 return True
         except Profile.DoesNotExist:
-            print('state 2', regestering, message.text == '/start')
+            # print('state 2', regestering, message.text == '/start')
             if regestering or message.text == '/start':
                 return True
             else:
