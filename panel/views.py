@@ -693,9 +693,9 @@ def setDate(request):
     lottery = json.loads(request.GET.get('lottery'))
     try:
         setting = Setting.objects.get(id=1)
-        setting.start_time = datetime.datetime.strptime(start, "%Y/%m/%d %H:%M")
-        setting.end_time = datetime.datetime.strptime(end, "%Y/%m/%d %H:%M")
-        setting.lottery_time = datetime.datetime.strptime(lottery, "%Y/%m/%d %H:%M")
+        setting.start_time = start
+        setting.end_time = end
+        setting.lottery_time = lottery
         setting.save()
         return JsonResponse(generate_response(message='successful'))
     except Profile.DoesNotExist:

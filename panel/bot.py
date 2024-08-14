@@ -90,6 +90,7 @@ def start(message):
         user_info = Profile.objects.get(user_id=message.chat.id)
         # invite link:
         callback_data = message.text.split()
+        print(callback_data)
         if len(callback_data) > 1:
             firend_id = callback_data[1]
             invietfrend(message=message, friends_id=firend_id)

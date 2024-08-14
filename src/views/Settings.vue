@@ -142,9 +142,9 @@ export default {
             this.payment_card.name = response.data['data'][0]['card_name']
             this.payment_card.number = response.data['data'][0]['card_number']
             this.payment_card.price = response.data['data'][0]['price']
-            // this.date.start = response.data['data'][0]['start_time']
-            // this.date.end = response.data['data'][0]['end_time']
-            // this.date.lottery = response.data['data'][0]['lottery_time']
+            this.date.start = response.data['data'][0]['start_time']
+            this.date.end = response.data['data'][0]['end_time']
+            this.date.lottery = response.data['data'][0]['lottery_time']
           }
       })
     },
@@ -153,8 +153,6 @@ export default {
         'channel': this.settingsDatum.channel,
         'link': this.settingsDatum.link,
       }
-      console.log(params)
-      console.log(this.settingsDatum)
       this.axios.get('/api/updateChannelSettings', {params:params}).then((response) => {
           toast.success('تنظیمات کانال با موفقیت ثبت شد');
       })
@@ -186,16 +184,6 @@ export default {
           toast.success('قرعه کشی با موفقیت پایان یافت');
       })
     },
-    dateStart(event){
-      console.log(event)
-      this.date.start = event
-    },
-    dateEnd(event){
-      this.date.end = event
-    },
-    dateLottery(event){
-      this.date.lottery = event
-    }
   },
   mounted() {
     this.getSettings()
@@ -297,28 +285,28 @@ export default {
       <p class="font-normal text-gray-700 dark:text-gray-400">این قسمت مربوط به تنظیمات پرداخت میباشد در این قسمت می توانید روش پرداخت را انتخاب کنید همچنین می توانید اطلاعات پرداخت خود را وارد کنید.</p>
     </header>
     <main class="flex flex-col gap-2">
-      <div class="flex flex-col gap-2 justify-start w-1/2">
+      <div class="flex flex-col md:flex-row gap-2">
         <Input @update="payment_card['number']=$event" title="شماره کارت:" :disabled="payment_card['edit']" :value="payment_card['number']"/>
         <Input @update="payment_card['name']=$event" title="نام و نام حانوادگی درج شده روی کارت:" :disabled="payment_card['edit']" :value="payment_card['name']"/>
         <Input @update="payment_card['price']=$event" title="مبلغ قرعه کشی (تومان):" :disabled="payment_card['edit']" :value="payment_card['price']"/>
-
-        <div class="">
-          <h1 class="mb-2 sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">روش پرداخت</h1>
-          <div class="flex items-center mb-4">
-            <input type="radio" id="default-radio-1" value="card-to-card" v-model="selectedPaymentMethod" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-            <label for="default-radio-1" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">کارت به کارت</label>
-          </div>
-          <div class="flex items-center">
-            <input type="radio" id="default-radio-2" value="payment-gateway" v-model="selectedPaymentMethod" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-            <label for="default-radio-2" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">درگاه پرداخت</label>
-          </div>
+      </div>
+      <div class="">
+        <h1 class="mb-2 sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">روش پرداخت</h1>
+        <div class="flex items-center mb-4">
+          <input type="radio" id="default-radio-1" value="card-to-card" v-model="selectedPaymentMethod" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="default-radio-1" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">کارت به کارت</label>
         </div>
-        <div class="w-50 flex flex-row gap-2">
-          <fwb-button @click="payment_card['edit']=false">ویرایش</fwb-button>
-          <fwb-button @click="setCard">ثبت کردن</fwb-button>
-          <fwb-button @click="updateCard">آپدیت کردن</fwb-button>
+        <div class="flex items-center">
+          <input type="radio" id="default-radio-2" value="payment-gateway" v-model="selectedPaymentMethod" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label for="default-radio-2" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">درگاه پرداخت</label>
         </div>
       </div>
+      <div class="w-50 flex flex-row gap-2">
+        <fwb-button @click="payment_card['edit']=false">ویرایش</fwb-button>
+        <fwb-button @click="setCard">ثبت کردن</fwb-button>
+        <fwb-button @click="updateCard">آپدیت کردن</fwb-button>
+      </div>
+
     </main>
   </main>
 <!--  lottery-->
@@ -329,23 +317,11 @@ export default {
     </header>
     <main class="flex flex-col gap-2 bg-white w-100 p-4 rounded-lg">
       <div class="flex flex-col md:flex-row md:items-end gap-4">
-        <div class="flex flex-col">
-<!--          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">شروع ثبت نام:</h5>-->
-          <DatePicker @update="dateStart" :date="[0, '12:00']" btnTitle="شروع ثبت نام" modalTitle="شروع ثبت نام"></DatePicker>
-<!--          <date-picker v-model="date.start" type="datetime"></date-picker>-->
-        </div>
-        <div class="flex flex-col">
-<!--          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">پایان ثبت نام:</h5>-->
-<!--          <date-picker v-model="date.end" type="datetime"></date-picker>-->
-          <DatePicker @update="dateEnd" btnTitle="پایان ثبت نام" modalTitle="پایان ثبت نام"></DatePicker>
-        </div>
-        <div class="flex flex-col">
-<!--          <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">زمان قرعه کشی:</h5>-->
-<!--          <date-picker v-model="date.lottery" type="datetime"></date-picker>-->
-          <DatePicker @update="dateLottery" btnTitle="زمان قرعه کشی" modalTitle="زمان قرعه کشی"></DatePicker>
-        </div>
-
+          <DatePicker Title="شروع ثبت نام" v-model="date.start"/>
+          <DatePicker Title="پایان ثبت نام" v-model="date.end"></DatePicker>
+          <DatePicker Title="زمان قرعه کشی" v-model="date.lottery"></DatePicker>
       </div>
+
       <div class="flex flex-col md:flex-row  gap-2">
         <fwb-button @click="setDate">ثبت کردن</fwb-button>
         <fwb-button @click="generateExcel">دریافت فایل اکسل</fwb-button>

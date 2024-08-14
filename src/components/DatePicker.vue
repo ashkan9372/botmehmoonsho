@@ -1,11 +1,10 @@
 <script>
 import JalaliMoment from 'jalali-moment';
-import moment from 'moment';
 import Button from "@/components/button.vue";
 export default {
   name: "DatePicker",
   components: {Button},
-  props:['date', 'btnTitle', 'modalTitle'],
+  props:['date', 'Title', 'modelValue'],
   data(){
     return {
       isOpen: false,
@@ -13,64 +12,35 @@ export default {
       dayIndex: 0,
       hour: 0,
       minute: 0,
-      date: null
+    }
+  },
+  watch: {
+    modelValue(newVal) {
+      if (newVal !== null) {
+        const jalaliDate = JalaliMoment(newVal);
+        this.dayIndex = jalaliDate.weekday();
+        this.hour = jalaliDate.hour();
+        this.minute = jalaliDate.minute();
+      }
     }
   },
   mounted() {
-    console.log('params', this.convertToJalali(this.date))
+    if (this.modelValue !== null) {
+      const jalaliDate = JalaliMoment(this.modelValue);
+      this.dayIndex = jalaliDate.weekday();
+      this.hour = jalaliDate.hour();
+      this.minute = jalaliDate.minute();
+    }
   },
   methods:{
-    calculateNewDateTime(targetDayOfWeek, targetHours, targetMinutes) {
-      let date = JalaliMoment().day((targetDayOfWeek + 6) % 7).hour(targetHours).minute(targetMinutes)
-      this.date = date.format('YYYY/MM/DD HH:mm')
-      this.$emit('update', this.date);
-      return date.format('jYYYY/jMM/jDD HH:mm')
+    changeIndex(amount) {
+      this.dayIndex = (this.dayIndex + amount + this.days.length) % this.days.length;
     },
-    convertToJalali(dateString) {
-      const jalaliDate = JalaliMoment(dateString, 'YYYY-MM-DD HH:mm');
-      return jalaliDate.format('HH:mm jYYYY/jM/jD');
+    changeMinute(amount) {
+      this.minute = (this.minute + amount + 60) % 60;
     },
-    increaseIndex(){
-      if (this.dayIndex<this.days.length-1){
-        this.dayIndex +=1
-      } else {
-        this.dayIndex = 0
-      }
-    },
-    increaseMinute(){
-      if (this.minute<59){
-        this.minute +=1
-      } else {
-        this.minute = 0
-      }
-    },
-    increasehour(){
-      if (this.hour<23){
-        this.hour +=1
-      } else {
-        this.hour = 0
-      }
-    },
-    decreaseIndex(){
-      if (0<this.dayIndex && this.dayIndex<=this.days.length-1){
-        this.dayIndex -=1
-      } else {
-        this.dayIndex = this.days.length-1
-      }
-    },
-    decreaseMinute(){
-      if (0<this.minute && this.minute<=59){
-        this.minute -=1
-      } else {
-        this.minute = 59
-      }
-    },
-    decreaseHour(){
-      if (0<this.hour && this.hour<=23){
-        this.hour -=1
-      } else {
-        this.hour = 23
-      }
+    changeHour(amount) {
+      this.hour = (this.hour + amount + 24) % 24;
     },
     timeFormater(time){
       if (0<=time && time<10){
@@ -80,13 +50,19 @@ export default {
         return time
       }
     },
-
     onToggle() {
       this.isOpen = !this.isOpen;
       this.$emit('modalOpened', this.isOpen);
     }
   },
   computed: {
+    formattedDate() {
+      let date = JalaliMoment().day((this.dayIndex + 6) % 7).hour(this.hour).minute(this.minute)
+      this.$emit('update:modelValue', date.format('YYYY-MM-DD HH:mm'));
+      const dayOfWeek = date.format('dddd');
+      const time = date.format('HH:mm');
+      return `${dayOfWeek} ${time}`;
+    },
     isModalVisible() {
       return this.isOpen;
     }
@@ -97,7 +73,7 @@ export default {
 <template>
     <Button @click="onToggle" class="font-semibold">
       <template v-slot:title>
-        {{ btnTitle }}
+        {{Title}}: {{ formattedDate }}
       </template>
     </Button>
     <!-- Render inside our `<div id="modals"></div>` in index.html -->
@@ -120,7 +96,7 @@ export default {
                         <span class="sr-only">Close modal</span>
                     </button>
                     <h3 class="text-xl font-semibold text-white">
-                      {{ modalTitle }}
+                      {{ Title }}
                     </h3>
                 </div>
                 <!-- Modal body -->
@@ -129,13 +105,13 @@ export default {
 
                       <!--    days-->
                       <div class="flex flex-col justify-center items-center">
-                        <span @click="increaseIndex" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
+                        <span @click="changeIndex(1)" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-up" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M7.776 5.553a.5.5 0 0 1 .448 0l6 3a.5.5 0 1 1-.448.894L8 6.56 2.224 9.447a.5.5 0 1 1-.448-.894z"/>
                           </svg>
                         </span>
                         {{days[dayIndex]}}
-                        <span @click="decreaseIndex" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
+                        <span @click="changeIndex(-1)" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-down" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M1.553 6.776a.5.5 0 0 1 .67-.223L8 9.44l5.776-2.888a.5.5 0 1 1 .448.894l-6 3a.5.5 0 0 1-.448 0l-6-3a.5.5 0 0 1-.223-.67"/>
                           </svg>
@@ -145,13 +121,13 @@ export default {
                       <div class="flex flex-row">
                         <!--    minute-->
                         <div class="flex flex-col justify-center items-center">
-                          <span @click="increaseMinute" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
+                          <span @click="changeMinute(1)" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-up" viewBox="0 0 16 16">
                               <path fill-rule="evenodd" d="M7.776 5.553a.5.5 0 0 1 .448 0l6 3a.5.5 0 1 1-.448.894L8 6.56 2.224 9.447a.5.5 0 1 1-.448-.894z"/>
                             </svg>
                           </span>
                               {{timeFormater(minute)}}
-                              <span @click="decreaseMinute" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
+                              <span @click="changeMinute(-1)" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-down" viewBox="0 0 16 16">
                               <path fill-rule="evenodd" d="M1.553 6.776a.5.5 0 0 1 .67-.223L8 9.44l5.776-2.888a.5.5 0 1 1 .448.894l-6 3a.5.5 0 0 1-.448 0l-6-3a.5.5 0 0 1-.223-.67"/>
                             </svg>
@@ -160,13 +136,13 @@ export default {
                         <div class="flex flex-col justify-center items-center font-bold"><span></span>:<span></span></div>
                         <!--    houe-->
                         <div class="flex flex-col justify-center items-center">
-                          <span @click="increasehour" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
+                          <span @click="changeHour(1)" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-up" viewBox="0 0 16 16">
                               <path fill-rule="evenodd" d="M7.776 5.553a.5.5 0 0 1 .448 0l6 3a.5.5 0 1 1-.448.894L8 6.56 2.224 9.447a.5.5 0 1 1-.448-.894z"/>
                             </svg>
                           </span>
                           {{timeFormater(hour)}}
-                          <span @click="decreaseHour" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
+                          <span @click="changeHour(-1)" class="bg-blue-500 rounded-lg px-2 py-1 text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-down" viewBox="0 0 16 16">
                               <path fill-rule="evenodd" d="M1.553 6.776a.5.5 0 0 1 .67-.223L8 9.44l5.776-2.888a.5.5 0 1 1 .448.894l-6 3a.5.5 0 0 1-.448 0l-6-3a.5.5 0 0 1-.223-.67"/>
                             </svg>
@@ -175,9 +151,6 @@ export default {
                       </div>
                   </div>
                 </div>
-            <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-{{calculateNewDateTime(dayIndex, hour, minute)}}
-            </div>
             </div>
         </div>
       </div>
