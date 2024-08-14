@@ -2,7 +2,9 @@
 node_modules
 /dist
 
-
+# IDE files
+.idea/
+.vscode/
 # local env files
 .env.local
 .env.*.local
@@ -25,4 +27,9 @@ pnpm-debug.log*
 .env
 venv
 .venv
-node_modules
+media
+*/migrations/*
+
+db.sqlite3
+django.log
+
