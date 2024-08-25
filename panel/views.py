@@ -89,16 +89,13 @@ def SettingsView(request):
 @csrf_exempt
 def LoginView(request):
     if request.method == 'POST':
-        print('login')
         username = request.GET.get('username')
         password = request.GET.get('password')
-        print(username, password)
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             # Login successful
             request.session['user_id'] = user.id
-            print(request.path)
             return JsonResponse(generate_response(message='successful'))
         else:
             # Login failed
@@ -568,9 +565,9 @@ def send_message(request):
         try:
             profile = Profile.objects.get(id=msg.sender_id)
             user_id = profile.user_id
-            pm1 = INIsection(Bold('پیام شما'), msg.message)
+            # pm1 = INIsection(Bold('پیام شما'), msg.message)
             pm2 = INIsection(Bold("جواب ادمین"), message)
-            text = pm1 + '\n' + pm2
+            text = pm2
             sendMessage(chat_id=user_id, text=text)
             msg.answer = message
             msg.save()
@@ -622,9 +619,9 @@ def sendMessageWithImage(request):
             try:
                 profile = Profile.objects.get(id=msg.sender_id)
                 user_id = profile.user_id
-                pm1 = INIsection('پیام شما', msg.message)
+                # pm1 = INIsection('پیام شما', msg.message)
                 pm2 = INIsection("جواب ادمین", message)
-                text = pm1 + '\n' + pm2
+                text = pm2
                 sendPhoto(chat_id=user_id, photo=InputFile(path_file), caption=text)
                 msg.answer = message
                 msg.answer_picture = path_file1

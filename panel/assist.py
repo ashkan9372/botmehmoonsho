@@ -56,32 +56,41 @@ def get_filename_with_date(base_filename, extension):
   return filename_with_date
 
 
-
 def generate_ticket(name, date, ticket):
-	number = {'1': '۱', '2': '۲', '3': '۳', '4': '۴', '5': '۵', '6': '۶', '7': '۷', '8': '۸', '9': '۹', '0': '۰'}
-	shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
-	date = shamsi_date.strftime('%Y/%m/%d %H:%M')
-	for i in number:
-		if i in date:
-			date = date.replace(i, number[i])
-	font_dir = settings.BASE_DIR / 'panel' / 'fonts'
-	english_font = ImageFont.truetype(font_dir/"Fonarto.ttf", 80)
-	english_font2 = ImageFont.truetype(font_dir/"Fonarto.ttf", 120)
-	persian_font = ImageFont.truetype(font_dir/"Estedad.ttf", 80)
-	image = Image.open(settings.BASE_DIR / 'panel' /"ticket.jpg")
+    # Define the mapping for numbers
+    number_map = {
+        '1': '۱', '2': '۲', '3': '۳', '4': '۴', '5': '۵', '6': '۶',
+        '7': '۷', '8': '۸', '9': '۹', '0': '۰'
+    }
+    # Convert Gregorian date to Persian date
+    shamsi_date = jdatetime.datetime.fromgregorian(date=date)
 
-	draw = ImageDraw.Draw(image)
-	draw.text((1080, 660), name, (109, 129, 58), font=persian_font)
-	draw.text((620, 400), ticket, (109, 129, 58), font=english_font2)
+    # Get the day of the week and time in Persian
+    days_of_week = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
+    day = days_of_week[shamsi_date.weekday()]
+    time = shamsi_date.strftime('%H:%M')
+    date_text = f' ساعت {time} {day}'
+    # Replace English digits with Persian ones in the date string
+    for eng_num, pers_num in number_map.items():
+        date_text = date_text.replace(eng_num, pers_num)
 
-	draw.text((255, 645), date, (109, 129, 58), font=persian_font)
+    font_dir = settings.BASE_DIR / 'panel' / 'fonts'
+    english_font = ImageFont.truetype(str(font_dir / "Fonarto.ttf"), 80)
+    english_font2 = ImageFont.truetype(str(font_dir / "Fonarto.ttf"), 120)
+    persian_font = ImageFont.truetype(str(font_dir / "Estedad.ttf"), 80)
+    image = Image.open(settings.BASE_DIR / 'panel' / "ticket.jpg")
 
-	draw = ImageDraw.Draw(image)
-	path = get_filename_with_date(ticket, '.png')
-	path = f"media/img/tickets/" + path
-	image.save(path)
+    draw = ImageDraw.Draw(image)
+    draw.text((1080, 660), name, (109, 129, 58), font=persian_font)
+    draw.text((620, 400), ticket, (109, 129, 58), font=english_font2)
+    draw.text((255, 645), date_text, (109, 129, 58), font=persian_font)
 
-	return path
+    path = get_filename_with_date(ticket, '.png')
+    path = f"media/img/tickets/{path}"
+    image.save(path)
+
+    return path
+
 
 
 import jdatetime
@@ -102,17 +111,10 @@ def timeValidation(start_datetime, end_datetime, setting):
         shamsi_end_time = jdatetime.datetime.fromgregorian(datetime=end_datetime)
         if shamsi_start_time > shamsi_end_time:
             shamsi_start_time = shamsi_start_time - jdatetime.timedelta(days=7)
-        # print('start time is: ', shamsi_start_time, 'day of week is:', shamsi_start_time.weekday())
-        # print('end time is: ', shamsi_end_time, 'day of week is:', shamsi_end_time.weekday())
-        # print('currnet time is: ', current_time, 'day of week is:', current_time.weekday())
-        # # Check if the current date is within the registration period
-        # print(start_time,current_time,end_time)
-        # print(shamsi_start_time , current_time , shamsi_end_time)
-        # print(shamsi_start_time <= current_time <= shamsi_end_time)
-        # print(shamsi_start_time.weekday(), current_time.weekday(), shamsi_end_time.weekday(), shamsi_start_time.weekday() <= current_time.weekday() <= shamsi_end_time.weekday())
+
         st = jdatetime.datetime(year=current_time.year, month=current_time.month, day=shamsi_start_time.day, hour=shamsi_start_time.hour, minute=shamsi_start_time.minute)
         et = jdatetime.datetime(year=current_time.year, month=current_time.month, day=shamsi_end_time.day, hour=shamsi_end_time.hour, minute=shamsi_end_time.minute)
-        # print(st, current_time, et, st<= current_time<= et)
+
 
         if shamsi_start_time.weekday() <= current_time.weekday() <= shamsi_end_time.weekday() and st<= current_time<= et:
             msg = "زمان ثبت نام در قرعه کشی فرا رسیده."
@@ -139,13 +141,60 @@ def timeValidation(start_datetime, end_datetime, setting):
                 'day': days_of_week[shamsi_lottery_time.weekday()],
                 'time': shamsi_lottery_time.strftime('%H:%M')
             }
-            msg = f"{Bold('زمان ثبت نام در قرعه کشی هنوز شروع نشده.')} ثبت نام در قرعه کشی هر هفته از روز {Bold(start_time['day'])} ساعت {Bold(start_time['time'])} شروع میشه وروز {Bold(end_time['day'])} ساعت {Bold(end_time['time'])} تمام میشه و زمان قرعه کشیو اعالم برنده هاروز {Bold(lottery_time['day'])} ساعت {Bold(lottery_time['time'])} می باشد"
+            msg = f"{Bold('زمان ثبت نام در قرعه کشی هنوز شروع نشده.')} ثبت نام در قرعه کشی هر هفته از روز {Bold(start_time['day'])} ساعت {Bold(start_time['time'])} شروع میشه و روز {Bold(end_time['day'])} ساعت {Bold(end_time['time'])} تمام میشه و زمان قرعه کشیو اعلام برنده ها روز {Bold(lottery_time['day'])} ساعت {Bold(lottery_time['time'])} می باشد"
             return False, msg
 
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         return False, "خطایی رخ داده است."
 
+def Check_time_validation(start, end, setting):
+    try:
+        start = jdatetime.datetime.fromgregorian(datetime=start)
+        end = jdatetime.datetime.fromgregorian(datetime=end)
+        today = jdatetime.datetime.now()
+        # Check if registration is open based on weekdays and current time
+        start_weekday = start.weekday()
+        end_weekday = end.weekday()
+        current_weekday = today.weekday()
+        print('start_weekday', start_weekday, 'end_weekday', end_weekday, 'current_weekday', current_weekday)
+        # if today equal with start or end check time
+        print(start.time(), today.time(), end.time())
+
+        days_of_week = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
+        shamsi_start_time = jdatetime.datetime.fromgregorian(datetime=setting.start_time)
+        start_time = {
+            'day': days_of_week[shamsi_start_time.weekday()],
+            'time': shamsi_start_time.strftime('%H:%M')
+        }
+        shamsi_end_time = jdatetime.datetime.fromgregorian(datetime=setting.end_time)
+        end_time = {
+            'day': days_of_week[shamsi_end_time.weekday()],
+            'time': shamsi_end_time.strftime('%H:%M')
+        }
+        shamsi_lottery_time = jdatetime.datetime.fromgregorian(datetime=setting.lottery_time)
+        lottery_time = {
+            'day': days_of_week[shamsi_lottery_time.weekday()],
+            'time': shamsi_lottery_time.strftime('%H:%M')
+        }
+        message = f"{Bold('زمان ثبت نام در قرعه کشی هنوز شروع نشده.')} ثبت نام در قرعه کشی هر هفته از روز {Bold(start_time['day'])} ساعت {Bold(start_time['time'])} شروع میشه و روز {Bold(end_time['day'])} ساعت {Bold(end_time['time'])} تمام میشه و زمان قرعه کشیو اعلام برنده ها روز {Bold(lottery_time['day'])} ساعت {Bold(lottery_time['time'])} می باشد"
+        if start_weekday == current_weekday and start.time() > today.time():
+            return False, message
+        elif current_weekday == end_weekday and end.time() < today.time():
+            return False, message
+        elif (current_weekday == end_weekday or start_weekday == current_weekday) and (
+                start.time() <= today.time() or today.time() <= end.time()):
+            message = "زمان ثبت نام در قرعه کشی فرا رسیده."
+            return True, message
+        elif start_weekday < current_weekday < end_weekday:
+            message = "زمان ثبت نام در قرعه کشی فرا رسیده."
+            return True, message
+        else:
+            return False, message
+
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return False, 'خطایی رخ داده است.'
 
 def keyboard_generator(my_list):
   """

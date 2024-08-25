@@ -11,6 +11,7 @@
     "autoprefixer": "^10",
     "axios": "^1.7.2",
     "core-js": "^3.8.3",
+    "d3": "^7.9.0",
     "flowbite": "^2.4.1",
     "flowbite-vue": "^0.1.5",
     "jalali-moment": "^3.3.11",

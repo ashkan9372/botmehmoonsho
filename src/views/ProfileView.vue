@@ -6,10 +6,11 @@ import Button from "@/components/button.vue";
 import Modal from "@/components/Modal.vue";
 import Table from "@/components/table.vue";
 import {useToast} from "vue-toastification";
+import ProfilePicture from "@/components/ProfilePicture.vue";
 
 export default {
   name: "ProfileView",
-  components: {Table, Modal, Button, Dropdown, Input, FwbButton},
+  components: {ProfilePicture, Table, Modal, Button, Dropdown, Input, FwbButton},
   data(){
     return {
       datum: [],
@@ -287,7 +288,8 @@ export default {
                   <template v-for="row in friendsDatum">
                     <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                            <img class="w-10 h-10 rounded-full" :src="row['picture']" alt="Jese image">
+<!--                            <img class="w-10 h-10 rounded-full" :src="row['picture']">-->
+                            <ProfilePicture :username="row['enter_id']" :src="row['picture']"></ProfilePicture>
                             <div class="ps-3">
                                 <div class="text-base font-semibold">{{ row['full_name'] }}</div>
                                 <div class="font-normal text-gray-500">{{ row['username'] }}</div>
@@ -483,7 +485,6 @@ export default {
               </span>
             </span>
           </template>
-
         </div>
         <div class="w-48">
         <Modal @modalOpened='modalHandlerWinning' btn-title="برنده شدن ها" modal-title="لیست تعداد دفعات برنده شده">
@@ -568,8 +569,8 @@ export default {
                     </tr>
                   </template>
                 </template>
-              </Table>
-            </template>
+            </Table>
+          </template>
         </Modal>
       </div>
       </div>

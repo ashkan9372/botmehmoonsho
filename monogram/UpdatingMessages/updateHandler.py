@@ -72,8 +72,8 @@ def check_regester(message):
             else:
                 return True
         except Profile.DoesNotExist:
-            # print('state 2', regestering, message.text == '/start')
-            if regestering or message.text == '/start':
+            print('state 2', regestering, message.text == r'^/start')
+            if regestering or '/start' in message.text:
                 return True
             else:
                 return False
@@ -95,6 +95,7 @@ def UpdateHandler(request, UPDATE_HANDLER):
             for cqf in UPDATE_HANDLER['callback_query']:
                 cqf(update.callback_query)
         elif 'message' in result:
+            # print('check regester', check_regester(update.message))
             if check_regester(update.message):
                 for message in UPDATE_HANDLER['message']:
                     message(update.message)

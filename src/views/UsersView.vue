@@ -4,10 +4,12 @@ import Table from "@/components/table.vue";
 import SearchInput from "@/components/searchInput.vue";
 import Button from "@/components/button.vue";
 import Dropdown from "@/components/Dropdown.vue";
+import ProfilePicture from "@/components/ProfilePicture.vue";
 
 export default {
   name: 'UsersView',
   components: {
+    ProfilePicture,
     Dropdown,
     Button,
     SearchInput,
@@ -135,7 +137,8 @@ export default {
       <template v-for="row in datum">
         <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
             <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                <img class="w-10 h-10 rounded-full" :src="row['picture']" alt="">
+                <ProfilePicture :username="row['userId']" :src="row['picture']"></ProfilePicture>
+<!--                <img class="w-10 h-10 rounded-full" :src="row['picture']" alt="">-->
                 <div class="ps-3">
                     <div class="text-base font-semibold">{{ row['profile']['name'] }}</div>
                     <div class="font-normal text-gray-500">{{ row['profile']['username'] }}</div>

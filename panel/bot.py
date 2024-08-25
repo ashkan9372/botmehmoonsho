@@ -73,7 +73,7 @@ def invietfrend(message, friends_id):
 
 @bot.newMessage(pattern=r'^/start')
 def start(message):
-    print(message.text)
+    # print('start stage ', message.text)
     p = getUserProfile(user_id=message.chat.id)
     # print(p)
     p = UserProfilePhotos(**p['result'])
@@ -88,6 +88,7 @@ def start(message):
         # print(filename)
     try:
         user_info = Profile.objects.get(user_id=message.chat.id)
+        # print('Profile Existed!')
         # invite link:
         callback_data = message.text.split()
         print(callback_data)
@@ -123,7 +124,7 @@ def start(message):
 
         welcome_message = f"""سلام رفیق گل! ‍♀️‍♂️به {Bold('ربات مهمونشو')} خوش اومدی! اینجا یه جای باحالِ پر از آدمای باحالِ خوش‌گذرانِ دوست‌داشتنیه! هر هفته یه {Bold('قرعه‌کشی خفن')} داریم که برنده‌ها باید با جایزه‌شون دوستاشون رو مهمون کنن! فقط کافیه عضو شی تا تو هم تو این جمع باحال باشی! {Bold('منتظرتیم!')}"""
         message.answer(welcome_message)
-
+        # print('Profile Does Not Exist!')
         if user_info.enter_name == None:
             c = Conversation(user_id=message.chat.id)
             c.create(callback_data='enter_name')
@@ -240,12 +241,12 @@ def bot_support(message):
             text = 'پیام قبلی شما هنوز تویسط ادمین برسی نشده است. پس از برسی پیام قبلی دسترسی این بخش برای شما فعال میشود.'
             message.answer(text)
         else:
-            text = 'بیام خود را بنویس تا برای ادمین ارسال کنم:'
+            text = 'پیام خود را بنویس تا برای ادمین ارسال کنم:'
             message.answer(text)
             conv = Conversation(message.chat.id)
             conv.create('support')
     except Messages.DoesNotExist:
-        text = 'بیام خود را بنویس تا برای ادمین ارسال کنم:'
+        text = 'پیام خود را بنویس تا برای ادمین ارسال کنم:'
         message.answer(text)
         conv = Conversation(message.chat.id)
         conv.create('support')
@@ -257,7 +258,7 @@ def lottery(message):
     end_time = setting.end_time
     lottery_time = setting.lottery_time
 
-    status, msg = timeValidation(start_time, end_time, setting)
+    status, msg = Check_time_validation(start_time, end_time, setting)
     if status:
         try:
             # Get the profile by ID
@@ -306,8 +307,8 @@ def lottery(message):
                     for friend in lottery.friends.all():
                         name = friend.enter_name
                         friends_name.append(name)
-                    friendList = INIsection(Bold('دوستان انتخاب شده'), friends_name)
-                    game_name = INIsection(Bold('فعالیت انتخاب شده'), lottery.game.name)
+                    friendList = INIsection('دوستان انتخاب شده', friends_name)
+                    game_name = INIsection('فعالیت انتخاب شده', lottery.game.name)
                     lottery_time = f'زمان قرعه کشی:{lottery_time}'
                     text = msg + '\n' + friendList + '\n' + game_name + '\n' + lottery_time
                     sendPhoto(chat_id=message.chat.id, photo=InputFile(path_file), caption=text)
@@ -360,8 +361,7 @@ def lottery_info(message):
         'day': days_of_week[shamsi_lottery_time.weekday()],
         'time': shamsi_lottery_time.strftime('%H:%M')
     }
-    text = f"ثبت نام در قرعه کشی هر هفته از روز {Bold(start_time['day'])} ساعت {Bold(start_time['time'])} شروع میشه وروز {Bold(end_time['day'])} ساعت {Bold(end_time['time'])} تمام میشه و زمان قرعه کشیو اعالم برنده هاروز {Bold(lottery_time['day'])} ساعت {Bold(lottery_time['time'])} می باشد"
-    # text = f"ثبت نام در قرعه کشی هر هفته از روز {start_time} شروع میشه وروز {end_time} تمام میشه و زمان قرعه کشی اعلام برنده ها{lottery_time}می باشد"
+    text = f"ثبت نام در قرعه کشی هر هفته از روز {Bold(start_time['day'])} ساعت {Bold(start_time['time'])} شروع میشه و روز {Bold(end_time['day'])} ساعت {Bold(end_time['time'])} تمام میشه و زمان قرعه کشیو اعلام برنده ها روز {Bold(lottery_time['day'])} ساعت {Bold(lottery_time['time'])} می باشد"
     message.answer(text)
 
 @bot.newMessage(pattern='📊 آمار و ارقام')
@@ -450,7 +450,7 @@ def callback_query(query):
             pass
 
     if query.data == 'addfriend':
-        text = "فقط کافیه نام کاربرای که دوستت رو ازش بگیری و برام بفرستی تا به لیست دوستات اضافش کنم."
+        text = "فقط کافیه نام کاربری که دوستت رو ازش بگیری و برام بفرستی تا به لیست دوستات اضافش کنم."
         keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
         keyboard = InlineKeyboardMarkup(keyboard)
         editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
@@ -461,7 +461,7 @@ def callback_query(query):
         data = query.data.split('-')
         friend_id = data[1]
         # username = data[2]
-        print(f"acceptFriend: friend_id:{friend_id}, profile: {chat_id}")
+        # print(f"acceptFriend: friend_id:{friend_id}, profile: {chat_id}")
         try:
             profile = Profile.objects.get(user_id=friend_id)
             friend_profile = Profile.objects.get(user_id=chat_id)

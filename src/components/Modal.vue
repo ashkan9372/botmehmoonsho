@@ -41,11 +41,11 @@ export default {
         <div @click="onToggle" class="fixed inset-0 z-50 bg-gray-900 opacity-40"></div>
 
         <!-- Where the actual content goes -->
-        <div class="fixed inset-0 flex items-center z-50 justify-center">
-          <div class="flex flex-col max-h-[600px] bg-white rounded-lg shadow dark:bg-gray-700">
+        <div class="fixed inset-0 flex items-center z-50 justify-center overflow-auto">
+          <div class="flex flex-col max-h-[600px] bg-white rounded-lg shadow dark:bg-gray-700 max-sm:w-[250px]">
                 <!-- Modal header -->
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    <h3 class="md:text-xl font-semibold text-gray-900 dark:text-white">
                         {{ modalTitle }}
                     </h3>
                     <button @click="onToggle" type="button" class="font-sans text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
@@ -56,22 +56,11 @@ export default {
                     </button>
                 </div>
                 <!-- Modal body -->
-                <div class="font-sans md:p-5 space-y-4 overflow-auto max-sm:w-[250px] md:min-w-full">
+                <div class="font-sans md:p-5 space-y-4">
                   <slot name="modalBody"></slot>
                 </div>
                 <!-- Modal footer -->
-                <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-<!--                    <Button @click="onToggle" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">-->
-<!--                      <template v-slot:title>-->
-<!--                        I accept-->
-<!--                      </template>-->
-<!--                    </Button>-->
-<!--                    <Button @click="onToggle" class="text-black py-2.5 px-5 ms-3 text-sm font-medium focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">-->
-<!--                      <template v-slot:title>-->
-<!--                        Decline-->
-<!--                      </template>-->
-<!--                    </Button>-->
-                </div>
+                <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600"></div>
             </div>
         </div>
       </div>
