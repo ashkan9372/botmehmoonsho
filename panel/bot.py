@@ -107,7 +107,7 @@ def start(message):
             if user_info.enter_name != None and user_info.enter_id == None:
                 c = Conversation(user_id=message.chat.id)
                 c.create(callback_data='enter_id')
-                text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+                text = '🔹 لطفا یک نام کاربری به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
                 message.answer(text)
 
     except Profile.DoesNotExist:
@@ -144,7 +144,7 @@ def start(message):
                 c.create(callback_data=f'enter_id-{friends_id}')
             else:
                 c.create(callback_data='enter_id')
-            text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+            text = '🔹 لطفا یک نام کاربری به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
             message.answer(text)
 
 
@@ -238,7 +238,7 @@ def bot_support(message):
         profile = Profile.objects.get(user_id=message.chat.id)
         msg = Messages.objects.filter(sender=profile).last()
         if msg and msg.status == 'OPEN':
-            text = 'پیام قبلی شما هنوز تویسط ادمین برسی نشده است. پس از برسی پیام قبلی دسترسی این بخش برای شما فعال میشود.'
+            text = 'پیام قبلی شما هنوز توسط ادمین برسی نشده است. پس از برسی پیام قبلی دسترسی این بخش برای شما فعال میشود.'
             message.answer(text)
         else:
             text = 'پیام خود را بنویس تا برای ادمین ارسال کنم:'
@@ -301,14 +301,14 @@ def lottery(message):
                     message.answer(text)
                 elif lottery.status == "Registered" and lottery.payment_status == 'PAID':
                     path_file = lottery.ticket_picture.url[1:]
-                    lottery_time = cnv_date(lottery_time)
+                    lottery_time = convert_date(lottery_time)
                     msg = 'بلیط شما صادر شده.'
                     friends_name = []
                     for friend in lottery.friends.all():
                         name = friend.enter_name
                         friends_name.append(name)
-                    friendList = INIsection('دوستان انتخاب شده', friends_name)
-                    game_name = INIsection('فعالیت انتخاب شده', lottery.game.name)
+                    friendList = INIsection('دوستان انتخاب شده:', friends_name)
+                    game_name = INIsection('فعالیت انتخاب شده:', lottery.game.name)
                     lottery_time = f'زمان قرعه کشی:{lottery_time}'
                     text = msg + '\n' + friendList + '\n' + game_name + '\n' + lottery_time
                     sendPhoto(chat_id=message.chat.id, photo=InputFile(path_file), caption=text)
@@ -450,7 +450,7 @@ def callback_query(query):
             pass
 
     if query.data == 'addfriend':
-        text = "فقط کافیه نام کاربری که دوستت رو ازش بگیری و برام بفرستی تا به لیست دوستات اضافش کنم."
+        text = "فقط کافیه نام کاربری دوستت رو ازش بگیری و برام بفرستی تا به لیست دوستات اضافش کنم."
         keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="bck-friend")]]
         keyboard = InlineKeyboardMarkup(keyboard)
         editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
@@ -487,7 +487,7 @@ def callback_query(query):
 
             text = 'درخواست کاربر موردنظر باموفقیت تایید شد.'
             editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
-            text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
+            text = f'کاربری با نام {Bold(friend_profile.enter_name)} نام کاربری {Bold(friend_profile.enter_id)} درخواست دوستی شمارا قبول کرد'
             sendMessage(chat_id=friend_id, text=text)
             conv = Conversation(friend_id)
             conv.cancel()
@@ -511,7 +511,7 @@ def callback_query(query):
 
             text = 'درخواست کاربر موردنظر باموفقیت رد شد.'
             editMessageText(text=text, message_id=query.message.message_id, chat_id=chat_id)
-            text = f'کاربری با نام {Bold(friend_profile.enter_name)} یورنیم {Bold(friend_profile.enter_id)} درخواست دوستی شمارا رد کرد'
+            text = f'کاربری با نام {Bold(friend_profile.enter_name)} نام کاربری {Bold(friend_profile.enter_id)} درخواست دوستی شمارا رد کرد'
             sendMessage(chat_id=friend_id, text=text)
             conv = Conversation(friend_id)
             conv.cancel()
@@ -527,7 +527,7 @@ def callback_query(query):
     if 'editProfileUsername' in query.data:
         conv = Conversation(chat_id)
         conv.create('editProfileUsername')
-        text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+        text = '🔹 لطفا یک نام کاربری به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
         sendMessage(chat_id=chat_id, text=text)
 
     if 'selectFriend' in query.data:
@@ -674,7 +674,7 @@ def callback_query(query):
         payment_method = setting.payment_method
         if payment_method == 'card-to-card':
             # text = "برای واریز مبلغ مورد نظر، لطفا به شماره کارت {card_number} به نام {card_name} وجه {payment_price} تومان را انتقال دهید.\nسپس با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
-            text = f"لطفا مبلغ {payment_price} نومان را به شماره کارت زیر واریز نمایید و با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
+            text = f"لطفا مبلغ {payment_price} تومان را به شماره کارت زیر واریز نمایید و با فشردن دکمه زیر عکس فیش واریزی خود را ارسال کنید."
             text += "\n" + f"{card_number}" + "\n" + f"{card_name}"
             keyboard = [
                 [
@@ -691,7 +691,7 @@ def callback_query(query):
             url = 'https://t.me/'
             keyboard = [[InlineKeyboardButton("🔗 درگاه پرداخت", url)]]
             keyboard = InlineKeyboardMarkup(keyboard)
-            text = f"لطفا مبلغ {payment_price} نومان را با فشردن دکمه زیر از طریق درگاه پرداخت واریز نمایید."
+            text = f"لطفا مبلغ {payment_price} تومان را با فشردن دکمه زیر از طریق درگاه پرداخت واریز نمایید."
             editMessageText(text=text, reply_markup=keyboard, chat_id=chat_id, message_id=message_id)
 
     if 'paid' in query.data:
@@ -744,7 +744,7 @@ def any(message):
                     else:
                         conv.change_callback_data(callback_data='enter_id')
 
-                    text = '🔹 لطفا یک یوزرنیم به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
+                    text = '🔹 لطفا یک نام کاربری به حروف انگلیسی برای خودتان انتخاب و ارسال کنید:'
                     message.answer(text)
                 except Profile.DoesNotExist:
                     pass

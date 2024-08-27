@@ -64,12 +64,7 @@ def generate_ticket(name, date, ticket):
     }
     # Convert Gregorian date to Persian date
     shamsi_date = jdatetime.datetime.fromgregorian(date=date)
-
-    # Get the day of the week and time in Persian
-    days_of_week = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
-    day = days_of_week[shamsi_date.weekday()]
-    time = shamsi_date.strftime('%H:%M')
-    date_text = f' ساعت {time} {day}'
+    date_text = shamsi_date.strftime('%Y/%m/%d %H:%M')
     # Replace English digits with Persian ones in the date string
     for eng_num, pers_num in number_map.items():
         date_text = date_text.replace(eng_num, pers_num)
@@ -81,7 +76,7 @@ def generate_ticket(name, date, ticket):
     image = Image.open(settings.BASE_DIR / 'panel' / "ticket.jpg")
 
     draw = ImageDraw.Draw(image)
-    draw.text((1080, 660), name, (109, 129, 58), font=persian_font)
+    draw.text((1500, 660), name, (109, 129, 58), font=persian_font)
     draw.text((620, 400), ticket, (109, 129, 58), font=english_font2)
     draw.text((255, 645), date_text, (109, 129, 58), font=persian_font)
 
@@ -90,8 +85,6 @@ def generate_ticket(name, date, ticket):
     image.save(path)
 
     return path
-
-
 
 import jdatetime
 from datetime import datetime

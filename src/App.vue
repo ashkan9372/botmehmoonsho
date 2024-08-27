@@ -89,8 +89,8 @@
                 <div @click="onToggle" class="fixed inset-0 bg-gray-900 opacity-40"></div>
 
                 <!-- Where the actual content goes -->
-                <div class="fixed inset-0 flex items-center justify-center">
-                  <div class="flex flex-col  max-h-[600px] bg-white rounded-lg shadow dark:bg-gray-700">
+                <div class="fixed inset-0 flex items-center z-50 justify-center overflow-auto">
+                  <div class="flex flex-col max-h-[600px] max-sm:w-[250px] bg-white rounded-lg shadow ">
                         <!-- Modal header -->
                         <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -104,9 +104,9 @@
                             </button>
                         </div>
                         <!-- Modal body -->
-                        <div class="p-4 font-sans  md:p-5 space-y-4 overflow-auto min-w-full">
+                        <div class="font-sans md:p-5 space-y-4">
                            <form>
-                           <div class="w-[450px] mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                           <div class="md:w-[450px] mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                                <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-gray-800">
                                    <label for="comment" class="sr-only">پیام خود را برای کاربر بنویسید</label>
                                    <textarea v-model="sendToAllParams.text" id="comment" rows="4" class="w-full px-0 text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="پیام خود را برای کاربر بنویسید..." required ></textarea>

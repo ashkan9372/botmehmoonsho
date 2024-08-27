@@ -288,7 +288,6 @@ export default {
                   <template v-for="row in friendsDatum">
                     <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-<!--                            <img class="w-10 h-10 rounded-full" :src="row['picture']">-->
                             <ProfilePicture :username="row['enter_id']" :src="row['picture']"></ProfilePicture>
                             <div class="ps-3">
                                 <div class="text-base font-semibold">{{ row['full_name'] }}</div>
@@ -385,12 +384,12 @@ export default {
                   </template>
                   <template v-slot:body>
                     <template v-for="row in messagesDatum">
-                      <tr class="text-nowrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <th class="px-6 py-4 max-w-[400px] ">
+                      <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                          <th class="px-6 py-4 max-w-[400px] ">
                           <template v-if="row['sender_picture']">
                             <div class="flex flex-row items-start gap-2">
-                              <img class="object-cover w-10 h-10  rounded-t-lg md:rounded-none md:rounded-s-lg" :src="row['sender_picture']" alt=""  @click="openImageInNewWindow(row['sender_picture'])">
-                              <p class=" font-normal text-gray-700 dark:text-gray-400 leading-normal">
+                              <img class="object-cover w-10 h-10" :src="row['sender_picture']" alt=""  @click="openImageInNewWindow(row['sender_picture'])">
+                              <p class="font-normal text-gray-700 dark:text-gray-400 leading-normal">
                                 {{ row['message'] }}
                               </p>
                             </div>
@@ -408,7 +407,7 @@ export default {
                                     <Modal @modalOpened='modalHandlerSendMessage' btn-title="پیام" modal-title="ارسال پیام به کاربر">
                                       <template v-slot:modalBody>
                                         <form>
-                                           <div class="w-[450px] mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                           <div class="md:w-[450px] mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                                                <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-gray-800">
                                                    <label for="comment" class="sr-only">پیام خود را برای کاربر بنویسید</label>
                                                    <textarea v-model="sendMessageParam.text" id="comment" rows="4" class="w-full px-0 text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="پیام خود را برای کاربر بنویسید..." required ></textarea>
@@ -451,7 +450,7 @@ export default {
                               <template v-else>
                                 <template v-if="row['answer_picture']">
                                   <div class="flex flex-row items-start gap-2">
-                                    <img class="object-cover w-10 h-10  rounded-t-lg md:rounded-none md:rounded-s-lg" :src="row['answer_picture']" alt=""  @click="openImageInNewWindow(row['answer_picture'])">
+                                    <img class="object-cover w-10 h-10" :src="row['answer_picture']" alt=""  @click="openImageInNewWindow(row['answer_picture'])">
                                     <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 leading-normal">
                                       {{ row['answer'] }}
                                     </p>
@@ -465,7 +464,6 @@ export default {
                                 </template>
                               </template>
                           </td>
-
                           <td class="px-6 py-4">
                               <a @click="deleteMessage(row['id'])" href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline">حذف</a>
                           </td>
@@ -527,7 +525,7 @@ export default {
                             <Modal @modalOpened='modalHandlerSendMessage' btn-title="پیام" modal-title="ارسال پیام به کاربر">
                                     <template v-slot:modalBody>
                                       <form>
-                                         <div class="w-[450px] mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                         <div class="md:w-[450px] mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                                              <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-gray-800">
                                                  <label for="comment" class="sr-only">پیام خود را برای کاربر بنویسید</label>
                                                  <textarea v-model="sendMessageParam.text" id="comment" rows="4" class="w-full px-0 text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="پیام خود را برای کاربر بنویسید..." required ></textarea>

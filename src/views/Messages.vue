@@ -186,22 +186,21 @@ export default {
             <td class="px-6 py-4 max-w-[400px]">
                 {{ row['sender_profile']['enter_id'] }}
             </td>
-            <th class="px-6 py-4 max-w-[400px] ">
-              <template v-if="row['sender_picture']">
-                <div class="flex flex-row items-start gap-2">
-                  <img class="object-cover w-10 h-10  rounded-t-lg md:rounded-none md:rounded-s-lg" :src="row['sender_picture']" alt=""  @click="openImageInNewWindow(row['sender_picture'])">
-                  <p class=" font-normal text-gray-700 dark:text-gray-400 leading-normal">
+            <td class="px-6 py-4 max-w-[400px]">
+                <template v-if="row['sender_picture']">
+                  <div class="flex flex-row items-start gap-2">
+                    <img class="object-cover w-10 h-10" :src="row['sender_picture']" alt=""  @click="openImageInNewWindow(row['sender_picture'])">
+                    <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 leading-normal">
+                      {{ row['message'] }}
+                    </p>
+                  </div>
+                </template>
+                <template v-else>
+                  <p class="mb-3 font-normal text-gray-700 sm:leading-normal">
                     {{ row['message'] }}
                   </p>
-
-                </div>
-              </template>
-              <template v-else>
-                <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-                  {{ row['message'] }}
-                </p>
-              </template>
-            </th>
+                </template>
+            </td>
             <td class="px-6 py-4 max-w-[400px]">
                 <template v-if="row['answer'] == null ">
                   <div class="w-14">
@@ -252,7 +251,7 @@ export default {
                 <template v-else>
                   <template v-if="row['answer_picture']">
                     <div class="flex flex-row items-start gap-2">
-                      <img class="object-cover w-10 h-10  rounded-t-lg md:rounded-none md:rounded-s-lg" :src="row['answer_picture']" alt=""  @click="openImageInNewWindow(row['answer_picture'])">
+                      <img class="object-cover w-10 h-10" :src="row['answer_picture']" alt=""  @click="openImageInNewWindow(row['answer_picture'])">
                       <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 leading-normal">
                         {{ row['answer'] }}
                       </p>
@@ -265,14 +264,12 @@ export default {
                   </template>
                 </template>
             </td>
-
             <td class="px-6 py-4">
                 <a @click="deleteMessage(row['id'])" href="#" class="font-medium text-red-600 dark:text-red-500 hover:underline">حذف</a>
             </td>
             <td class="px-6 py-4">
                 <a @click="closeMessage(row['id'])" href="#" class="font-medium text-green-600 dark:text-green-500 hover:underline">بستن</a>
             </td>
-
         </tr>
       </template>
     </template>
