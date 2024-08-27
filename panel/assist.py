@@ -63,7 +63,10 @@ def generate_ticket(name, date, ticket):
         '7': '۷', '8': '۸', '9': '۹', '0': '۰'
     }
     # Convert Gregorian date to Persian date
-    shamsi_date = jdatetime.datetime.fromgregorian(date=date)
+    # shamsi_date = jdatetime.datetime.fromgregorian(date=date)
+    shamsi_date = jdatetime.datetime.fromgregorian(datetime=date)
+    time_zone = jdatetime.timedelta(hours=3, minutes=30)
+    shamsi_date = shamsi_date + time_zone
     date_text = shamsi_date.strftime('%Y/%m/%d %H:%M')
     # Replace English digits with Persian ones in the date string
     for eng_num, pers_num in number_map.items():
