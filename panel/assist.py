@@ -79,18 +79,18 @@ def generate_ticket(name, date, ticket):
     image = Image.open(settings.BASE_DIR / 'panel' / "ticket.jpg")
 
     draw = ImageDraw.Draw(image)
-    draw.text((1500, 660), name, (109, 129, 58), font=persian_font)
+    draw.text((1240, 660), name, (109, 129, 58), font=persian_font)
     draw.text((620, 400), ticket, (109, 129, 58), font=english_font2)
-    draw.text((255, 645), date_text, (109, 129, 58), font=persian_font)
+    draw.text((220, 645), date_text, (109, 129, 58), font=persian_font)
 
     path = get_filename_with_date(ticket, '.png')
     path = f"media/img/tickets/{path}"
     image.save(path)
 
     return path
-
 import jdatetime
 from datetime import datetime
+generate_ticket('مهدی حسینی', datetime(2024, 8, 15, 12, 0), 'asads')
 
 def convert_date(date):
     if date:
@@ -241,3 +241,42 @@ def is_persian_name(text):
   match = re.match(pattern, text)
 
   return bool(match)
+
+
+import datetime
+
+
+def get_date_in_current_week(input_datetime):
+    """
+    Calculates the datetime for a specific day of the week within the current week.
+
+    This function takes a datetime object as input and returns a new datetime object
+    representing the same day of the week within the current week.
+
+    Args:
+    input_datetime: The datetime object representing the desired day of the week
+                     (reference date).
+
+    Returns:
+    A datetime object representing the same day of the week as the input_datetime
+    but falling within the current calendar week.
+    """
+
+    # Get the numerical representation of the day of the week from the input datetime
+    # (0=Monday, 6=Sunday).
+    input_day_of_week = input_datetime.weekday()
+
+    # Get the current datetime.
+    current_datetime = datetime.datetime.now()
+
+    # Calculate the start of the current week (always a Monday).
+    # We subtract the current day of the week (0-6) as a timedelta to get the previous
+    # Monday, which is the beginning of the current week.
+    start_of_current_week = current_datetime - datetime.timedelta(days=current_datetime.weekday())
+
+    # Calculate the target datetime based on the desired day of the week (from input)
+    # and the start of the current week. Add the number of days corresponding to the
+    # desired day (input_day_of_week) to reach the target date within the current week.
+    target_datetime = start_of_current_week + datetime.timedelta(days=input_day_of_week)
+    target_datetime = target_datetime.replace(hour=input_datetime.hour, minute=input_datetime.minute)
+    return target_datetime

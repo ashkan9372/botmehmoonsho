@@ -302,7 +302,8 @@ def lottery(message):
                 elif lottery.status == "Registered" and lottery.payment_status == 'PAID':
                     path_file = lottery.ticket_picture.url[1:]
                     # lottery_time = convert_date(lottery_time)
-                    shamsi_date = jdatetime.datetime.fromgregorian(date=lottery_time)
+                    lottery_datetime = get_date_in_current_week(lottery_time)
+                    shamsi_date = jdatetime.datetime.fromgregorian(date=lottery_datetime)
                     lottery_time = shamsi_date.strftime('%Y/%m/%d %H:%M')
                     msg = 'بلیط شما صادر شده.'
                     friends_name = []
